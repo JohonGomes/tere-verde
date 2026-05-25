@@ -1,0 +1,174 @@
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* Paleta Light (Padrão) - Terê Verde */
+  --bg-color: #F4F6F5;
+  --surface-color: #FFFFFF;
+  --text-color: #1C2A25;
+  --primary-color: #2F5C4A;
+  --accent-earth: #8C6E53;
+  --accent-water: #5B7B88;
+
+  --font-size: 1rem;
+  --background: #FFFFFF;
+  --foreground: #1C2A25;
+  --card: #FFFFFF;
+  --card-foreground: #1C2A25;
+  --popover: #FFFFFF;
+  --popover-foreground: #1C2A25;
+  --primary: #2F5C4A;
+  --primary-foreground: #FFFFFF;
+  --secondary: #8C6E53;
+  --secondary-foreground: #FFFFFF;
+  --muted: #E8EBE9;
+  --muted-foreground: #5A6B63;
+  --accent: #5B7B88;
+  --accent-foreground: #FFFFFF;
+  --destructive: #d4183d;
+  --destructive-foreground: #FFFFFF;
+  --border: rgba(47, 92, 74, 0.15);
+  --input: transparent;
+  --input-background: #FFFFFF;
+  --switch-background: #8C6E53;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --ring: #2F5C4A;
+  --radius: 0.625rem;
+}
+
+.dark {
+  /* Paleta Dark - Terê Verde */
+  --bg-color: #121A17;
+  --surface-color: #1A2621;
+  --text-color: #E1E8E4;
+  --primary-color: #559477;
+  --accent-earth: #B08A69;
+  --accent-water: #7A9FA9;
+
+  --background: #121A17;
+  --foreground: #E1E8E4;
+  --card: #1A2621;
+  --card-foreground: #E1E8E4;
+  --popover: #1A2621;
+  --popover-foreground: #E1E8E4;
+  --primary: #559477;
+  --primary-foreground: #121A17;
+  --secondary: #B08A69;
+  --secondary-foreground: #121A17;
+  --muted: #243429;
+  --muted-foreground: #9BA8A2;
+  --accent: #7A9FA9;
+  --accent-foreground: #121A17;
+  --destructive: #d4183d;
+  --destructive-foreground: #E1E8E4;
+  --border: rgba(85, 148, 119, 0.2);
+  --input: #243429;
+  --ring: #559477;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-size: 1rem;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  /**
+  * Default typography styles for HTML elements (h1-h4, p, label, button, input).
+  * These are in @layer base, so Tailwind utility classes (like text-sm, text-lg) automatically override them.
+  */
+
+  h1 {
+    font-size: var(--text-2xl);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h2 {
+    font-size: var(--text-xl);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h3 {
+    font-size: var(--text-lg);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h4 {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  label {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  button {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  input {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-normal);
+    line-height: 1.5;
+  }
+}
