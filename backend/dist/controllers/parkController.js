@@ -151,7 +151,17 @@ async function addPark(req, res) {
     try {
         const { nome, descricao, altitude, area, imagem, limiteCapacidadeDiaria, funcionamento, ingressoBase } = req.body;
         const id = `parque-${crypto_1.default.randomUUID().slice(0, 8)}`;
-        await db_1.default.execute("INSERT INTO parks (id, nome, descricao, altitude, area, imagem, limite_capacidade_diaria, funcionamento, ingresso_base) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", [id, nome, descricao, altitude, area, imagem, limiteCapacidadeDiaria, funcionamento, ingressoBase]);
+        await db_1.default.execute("INSERT INTO parks (id, nome, descricao, altitude, area, imagem, limite_capacidade_diaria, funcionamento, ingresso_base) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", [
+            id,
+            nome,
+            descricao,
+            altitude || null,
+            area || null,
+            imagem || null,
+            limiteCapacidadeDiaria !== undefined ? limiteCapacidadeDiaria : 100,
+            funcionamento || null,
+            ingressoBase !== undefined ? ingressoBase : 0.00
+        ]);
         return res.status(201).json({ id, nome, descricao, altitude, area, imagem, limiteCapacidadeDiaria, funcionamento, ingressoBase });
     }
     catch (error) {
@@ -163,7 +173,17 @@ async function updatePark(req, res) {
     try {
         const { id } = req.params;
         const { nome, descricao, altitude, area, imagem, limiteCapacidadeDiaria, funcionamento, ingressoBase } = req.body;
-        await db_1.default.execute("UPDATE parks SET nome = ?, descricao = ?, altitude = ?, area = ?, imagem = ?, limite_capacidade_diaria = ?, funcionamento = ?, ingresso_base = ? WHERE id = ?", [nome, descricao, altitude, area, imagem, limiteCapacidadeDiaria, funcionamento, ingressoBase, id]);
+        await db_1.default.execute("UPDATE parks SET nome = ?, descricao = ?, altitude = ?, area = ?, imagem = ?, limite_capacidade_diaria = ?, funcionamento = ?, ingresso_base = ? WHERE id = ?", [
+            nome,
+            descricao,
+            altitude || null,
+            area || null,
+            imagem || null,
+            limiteCapacidadeDiaria !== undefined ? limiteCapacidadeDiaria : 100,
+            funcionamento || null,
+            ingressoBase !== undefined ? ingressoBase : 0.00,
+            id
+        ]);
         return res.json({ message: "Parque atualizado com sucesso!" });
     }
     catch (error) {

@@ -34,7 +34,16 @@ async function addEvent(req, res) {
     try {
         const { parkId, nome, descricao, data, preco, limiteCapacidadeDiaria, imagem } = req.body;
         const id = `evento-${crypto_1.default.randomUUID().slice(0, 8)}`;
-        await db_1.default.execute("INSERT INTO events (id, park_id, nome, descricao, data, preco, limite_capacidade_diaria, imagem) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", [id, parkId || null, nome, descricao, data, preco, limiteCapacidadeDiaria, imagem]);
+        await db_1.default.execute("INSERT INTO events (id, park_id, nome, descricao, data, preco, limite_capacidade_diaria, imagem) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", [
+            id,
+            parkId || null,
+            nome,
+            descricao,
+            data,
+            preco !== undefined ? preco : 0.00,
+            limiteCapacidadeDiaria !== undefined ? limiteCapacidadeDiaria : 50,
+            imagem || null
+        ]);
         return res.status(201).json({ id, parkId, nome, descricao, data, preco, limiteCapacidadeDiaria, imagem });
     }
     catch (error) {
@@ -46,7 +55,16 @@ async function updateEvent(req, res) {
     try {
         const { id } = req.params;
         const { parkId, nome, descricao, data, preco, limiteCapacidadeDiaria, imagem } = req.body;
-        await db_1.default.execute("UPDATE events SET park_id = ?, nome = ?, descricao = ?, data = ?, preco = ?, limite_capacidade_diaria = ?, imagem = ? WHERE id = ?", [parkId || null, nome, descricao, data, preco, limiteCapacidadeDiaria, imagem, id]);
+        await db_1.default.execute("UPDATE events SET park_id = ?, nome = ?, descricao = ?, data = ?, preco = ?, limite_capacidade_diaria = ?, imagem = ? WHERE id = ?", [
+            parkId || null,
+            nome,
+            descricao,
+            data,
+            preco !== undefined ? preco : 0.00,
+            limiteCapacidadeDiaria !== undefined ? limiteCapacidadeDiaria : 50,
+            imagem || null,
+            id
+        ]);
         return res.json({ message: "Evento atualizado com sucesso!" });
     }
     catch (error) {
@@ -82,7 +100,7 @@ async function addRestaurant(req, res) {
     try {
         const { nome, tipo, descricao, imagem } = req.body;
         const id = `restaurante-${crypto_1.default.randomUUID().slice(0, 8)}`;
-        await db_1.default.execute("INSERT INTO restaurants (id, nome, tipo, descricao, imagem, nota_media, avaliacoes_contagem) VALUES (?, ?, ?, ?, ?, 5.00, 0)", [id, nome, tipo, descricao, imagem]);
+        await db_1.default.execute("INSERT INTO restaurants (id, nome, tipo, descricao, imagem, nota_media, avaliacoes_contagem) VALUES (?, ?, ?, ?, ?, 5.00, 0)", [id, nome, tipo, descricao, imagem || null]);
         return res.status(201).json({ id, nome, tipo, descricao, imagem, notaMedia: 5.00, avaliacoesContagem: 0 });
     }
     catch (error) {
@@ -94,7 +112,7 @@ async function updateRestaurant(req, res) {
     try {
         const { id } = req.params;
         const { nome, tipo, descricao, imagem } = req.body;
-        await db_1.default.execute("UPDATE restaurants SET nome = ?, tipo = ?, descricao = ?, imagem = ? WHERE id = ?", [nome, tipo, descricao, imagem, id]);
+        await db_1.default.execute("UPDATE restaurants SET nome = ?, tipo = ?, descricao = ?, imagem = ? WHERE id = ?", [nome, tipo, descricao, imagem || null, id]);
         return res.json({ message: "Restaurante atualizado com sucesso!" });
     }
     catch (error) {
@@ -130,7 +148,7 @@ async function addLodging(req, res) {
     try {
         const { nome, tipo, descricao, imagem } = req.body;
         const id = `hospedagem-${crypto_1.default.randomUUID().slice(0, 8)}`;
-        await db_1.default.execute("INSERT INTO lodgings (id, nome, tipo, descricao, imagem, nota_media, avaliacoes_contagem) VALUES (?, ?, ?, ?, ?, 5.00, 0)", [id, nome, tipo, descricao, imagem]);
+        await db_1.default.execute("INSERT INTO lodgings (id, nome, tipo, descricao, imagem, nota_media, avaliacoes_contagem) VALUES (?, ?, ?, ?, ?, 5.00, 0)", [id, nome, tipo, descricao, imagem || null]);
         return res.status(201).json({ id, nome, tipo, descricao, imagem, notaMedia: 5.00, avaliacoesContagem: 0 });
     }
     catch (error) {
@@ -142,7 +160,7 @@ async function updateLodging(req, res) {
     try {
         const { id } = req.params;
         const { nome, tipo, descricao, imagem } = req.body;
-        await db_1.default.execute("UPDATE lodgings SET nome = ?, tipo = ?, descricao = ?, imagem = ? WHERE id = ?", [nome, tipo, descricao, imagem, id]);
+        await db_1.default.execute("UPDATE lodgings SET nome = ?, tipo = ?, descricao = ?, imagem = ? WHERE id = ?", [nome, tipo, descricao, imagem || null, id]);
         return res.json({ message: "Hospedagem atualizada com sucesso!" });
     }
     catch (error) {

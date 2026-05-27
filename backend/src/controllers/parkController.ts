@@ -175,7 +175,17 @@ export async function addPark(req: AuthenticatedRequest, res: Response) {
 
     await pool.execute(
       "INSERT INTO parks (id, nome, descricao, altitude, area, imagem, limite_capacidade_diaria, funcionamento, ingresso_base) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-      [id, nome, descricao, altitude, area, imagem, limiteCapacidadeDiaria, funcionamento, ingressoBase]
+      [
+        id,
+        nome,
+        descricao,
+        altitude || null,
+        area || null,
+        imagem || null,
+        limiteCapacidadeDiaria !== undefined ? limiteCapacidadeDiaria : 100,
+        funcionamento || null,
+        ingressoBase !== undefined ? ingressoBase : 0.00
+      ]
     );
 
     return res.status(201).json({ id, nome, descricao, altitude, area, imagem, limiteCapacidadeDiaria, funcionamento, ingressoBase });
@@ -192,7 +202,17 @@ export async function updatePark(req: AuthenticatedRequest, res: Response) {
 
     await pool.execute(
       "UPDATE parks SET nome = ?, descricao = ?, altitude = ?, area = ?, imagem = ?, limite_capacidade_diaria = ?, funcionamento = ?, ingresso_base = ? WHERE id = ?",
-      [nome, descricao, altitude, area, imagem, limiteCapacidadeDiaria, funcionamento, ingressoBase, id]
+      [
+        nome,
+        descricao,
+        altitude || null,
+        area || null,
+        imagem || null,
+        limiteCapacidadeDiaria !== undefined ? limiteCapacidadeDiaria : 100,
+        funcionamento || null,
+        ingressoBase !== undefined ? ingressoBase : 0.00,
+        id
+      ]
     );
 
     return res.json({ message: "Parque atualizado com sucesso!" });

@@ -53,31 +53,71 @@ export function AdminDashboardPage({ onNavigate }: AdminDashboardPageProps) {
 
   // Carregar dados iniciais
   const loadDashboardData = async () => {
+    // 1. Carregar Parques
     try {
       const p = await ApiService.getParks();
-      const t = await ApiService.getTrails();
-      const e = await ApiService.getEvents();
-      const r = await ApiService.getRestaurants();
-      const l = await ApiService.getLodgings();
-      const c = await ApiService.getPendingComments();
-      const rep = await ApiService.getSalesReport();
-      const allTix = await ApiService.getAllTickets();
-
       setParks(p);
+    } catch (err) {
+      console.error("Erro ao carregar parques:", err);
+    }
+
+    // 2. Carregar Trilhas
+    try {
+      const t = await ApiService.getTrails();
       setTrails(t);
+    } catch (err) {
+      console.error("Erro ao carregar trilhas:", err);
+    }
+
+    // 3. Carregar Eventos
+    try {
+      const e = await ApiService.getEvents();
       setEvents(e);
+    } catch (err) {
+      console.error("Erro ao carregar eventos:", err);
+    }
+
+    // 4. Carregar Restaurantes
+    try {
+      const r = await ApiService.getRestaurants();
       setRestaurants(r);
+    } catch (err) {
+      console.error("Erro ao carregar restaurantes:", err);
+    }
+
+    // 5. Carregar Hospedagens
+    try {
+      const l = await ApiService.getLodgings();
       setLodgings(l);
+    } catch (err) {
+      console.error("Erro ao carregar hospedagens:", err);
+    }
+
+    // 6. Carregar Comentários Pendentes
+    try {
+      const c = await ApiService.getPendingComments();
       setPendingComments(c);
+    } catch (err) {
+      console.error("Erro ao carregar comentários pendentes:", err);
+    }
+
+    // 7. Carregar Relatórios de Vendas
+    try {
+      const rep = await ApiService.getSalesReport();
       setSalesReport(rep);
-      
+    } catch (err) {
+      console.error("Erro ao carregar relatórios de vendas:", err);
+    }
+
+    // 8. Carregar Todos os Ingressos
+    try {
+      const allTix = await ApiService.getAllTickets();
       const rev = allTix.filter(tx => tx.status !== "cancelado").reduce((acc, curr) => acc + curr.valorTotal, 0);
       const qty = allTix.filter(tx => tx.status !== "cancelado").reduce((acc, curr) => acc + curr.quantidade, 0);
       setTotalRevenue(rev);
       setTotalTickets(qty);
     } catch (err) {
-      console.error("Erro ao carregar dados do dashboard:", err);
-      toast.error("Erro ao atualizar dados do painel.");
+      console.error("Erro ao carregar ingressos/métricas:", err);
     }
   };
 

@@ -13,10 +13,16 @@ import type { PageType } from "../App";
 interface MainNavigationProps {
   onNavigate: (page: PageType) => void;
   onOpenAuth: (tab: "login" | "register") => void;
+  parks?: any[];
+  onSelectPark?: (parkId: string) => void;
 }
 
-export function MainNavigation({ onNavigate, onOpenAuth }: MainNavigationProps) {
+export function MainNavigation({ onNavigate, onOpenAuth, parks = [], onSelectPark }: MainNavigationProps) {
   const { user } = useAuth();
+  
+  const customParks = parks.filter(
+    (p: any) => p.id !== "parque-nacional" && p.id !== "parque-tres-picos" && p.id !== "parque-municipal"
+  );
 
   return (
     <NavigationMenu className="hidden lg:flex">
@@ -39,11 +45,11 @@ export function MainNavigation({ onNavigate, onOpenAuth }: MainNavigationProps) 
             Parques
           </NavigationMenuTrigger>
           <NavigationMenuContent>
-            <ul className="grid w-[420px] gap-2 p-4">
+            <ul className="grid w-[420px] gap-2 p-4 max-h-[80vh] overflow-y-auto">
               <li>
                 <NavigationMenuLink asChild>
                   <button
-                    onClick={() => onNavigate("parque-nacional")}
+                    onClick={() => onSelectPark ? onSelectPark("parque-nacional") : onNavigate("parque-nacional")}
                     className="group w-full text-left block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-all hover:bg-primary/5 hover:shadow-sm border border-transparent hover:border-primary/20"
                   >
                     <div className="flex items-center gap-2 text-sm font-semibold leading-none group-hover:text-primary transition-colors">
@@ -59,7 +65,7 @@ export function MainNavigation({ onNavigate, onOpenAuth }: MainNavigationProps) 
               <li>
                 <NavigationMenuLink asChild>
                   <button
-                    onClick={() => onNavigate("parque-tres-picos")}
+                    onClick={() => onSelectPark ? onSelectPark("parque-tres-picos") : onNavigate("parque-tres-picos")}
                     className="group w-full text-left block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-all hover:bg-primary/5 hover:shadow-sm border border-transparent hover:border-primary/20"
                   >
                     <div className="flex items-center gap-2 text-sm font-semibold leading-none group-hover:text-primary transition-colors">
@@ -75,7 +81,7 @@ export function MainNavigation({ onNavigate, onOpenAuth }: MainNavigationProps) 
               <li>
                 <NavigationMenuLink asChild>
                   <button
-                    onClick={() => onNavigate("parque-municipal")}
+                    onClick={() => onSelectPark ? onSelectPark("parque-municipal") : onNavigate("parque-municipal")}
                     className="group w-full text-left block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-all hover:bg-primary/5 hover:shadow-sm border border-transparent hover:border-primary/20"
                   >
                     <div className="flex items-center gap-2 text-sm font-semibold leading-none group-hover:text-primary transition-colors">
@@ -88,6 +94,33 @@ export function MainNavigation({ onNavigate, onOpenAuth }: MainNavigationProps) 
                   </button>
                 </NavigationMenuLink>
               </li>
+
+              {customParks.length > 0 && (
+                <>
+                  <div className="border-t my-1 border-border" />
+                  <div className="px-3 pt-1 pb-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    Outros Parques
+                  </div>
+                  {customParks.map((p: any) => (
+                    <li key={p.id}>
+                      <NavigationMenuLink asChild>
+                        <button
+                          onClick={() => onSelectPark ? onSelectPark(p.id) : onNavigate(p.id)}
+                          className="group w-full text-left block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-all hover:bg-primary/5 hover:shadow-sm border border-transparent hover:border-primary/20"
+                        >
+                          <div className="flex items-center gap-2 text-sm font-semibold leading-none group-hover:text-primary transition-colors">
+                            <Mountain className="h-4 w-4" />
+                            {p.nome}
+                          </div>
+                          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground mt-1.5">
+                            {p.descricao || "Parque ecológico cadastrado no sistema."}
+                          </p>
+                        </button>
+                      </NavigationMenuLink>
+                    </li>
+                  ))}
+                </>
+              )}
             </ul>
           </NavigationMenuContent>
         </NavigationMenuItem>

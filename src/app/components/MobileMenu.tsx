@@ -22,15 +22,21 @@ import type { PageType } from "../App";
 interface MobileMenuProps {
   onNavigate: (page: PageType) => void;
   onOpenAuth: (tab: "login" | "register") => void;
+  parks?: any[];
+  onSelectPark?: (parkId: string) => void;
 }
 
-export function MobileMenu({ onNavigate, onOpenAuth }: MobileMenuProps) {
+export function MobileMenu({ onNavigate, onOpenAuth, parks = [], onSelectPark }: MobileMenuProps) {
   const { user, logout } = useAuth();
   const [open, setOpen] = useState(false);
   const [fontSize, setFontSize] = useState(100);
   const [parquesOpen, setParquesOpen] = useState(false);
   const [trilhasOpen, setTrilhasOpen] = useState(false);
   const [cidadeOpen, setCidadeOpen] = useState(false);
+  
+  const customParks = parks.filter(
+    (p: any) => p.id !== "parque-nacional" && p.id !== "parque-tres-picos" && p.id !== "parque-municipal"
+  );
 
   useEffect(() => {
     const savedFontSize = localStorage.getItem("fontSize");
@@ -135,7 +141,8 @@ export function MobileMenu({ onNavigate, onOpenAuth }: MobileMenuProps) {
             <CollapsibleContent className="pl-4 space-y-1 mt-1">
               <button
                 onClick={() => {
-                  onNavigate("parque-nacional");
+                  if (onSelectPark) onSelectPark("parque-nacional");
+                  else onNavigate("parque-nacional");
                   setOpen(false);
                 }}
                 className="flex items-center gap-2 py-2 px-4 text-sm rounded-md hover:bg-accent transition-colors w-full text-left"
@@ -145,7 +152,8 @@ export function MobileMenu({ onNavigate, onOpenAuth }: MobileMenuProps) {
               </button>
               <button
                 onClick={() => {
-                  onNavigate("parque-tres-picos");
+                  if (onSelectPark) onSelectPark("parque-tres-picos");
+                  else onNavigate("parque-tres-picos");
                   setOpen(false);
                 }}
                 className="flex items-center gap-2 py-2 px-4 text-sm rounded-md hover:bg-accent transition-colors w-full text-left"
@@ -155,7 +163,8 @@ export function MobileMenu({ onNavigate, onOpenAuth }: MobileMenuProps) {
               </button>
               <button
                 onClick={() => {
-                  onNavigate("parque-municipal");
+                  if (onSelectPark) onSelectPark("parque-municipal");
+                  else onNavigate("parque-municipal");
                   setOpen(false);
                 }}
                 className="flex items-center gap-2 py-2 px-4 text-sm rounded-md hover:bg-accent transition-colors w-full text-left"
@@ -163,6 +172,29 @@ export function MobileMenu({ onNavigate, onOpenAuth }: MobileMenuProps) {
                 <Mountain className="h-3 w-3" />
                 Parque Natural Municipal Montanhas
               </button>
+
+              {customParks.length > 0 && (
+                <>
+                  <div className="border-t my-2 border-border/60 mx-4" />
+                  <div className="px-4 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                    Outros Parques
+                  </div>
+                  {customParks.map((p: any) => (
+                    <button
+                      key={p.id}
+                      onClick={() => {
+                        if (onSelectPark) onSelectPark(p.id);
+                        else onNavigate(p.id);
+                        setOpen(false);
+                      }}
+                      className="flex items-center gap-2 py-2 px-4 text-sm rounded-md hover:bg-accent transition-colors w-full text-left"
+                    >
+                      <Mountain className="h-3 w-3 text-primary shrink-0" />
+                      <span className="truncate">{p.nome}</span>
+                    </button>
+                  ))}
+                </>
+              )}
             </CollapsibleContent>
           </Collapsible>
 

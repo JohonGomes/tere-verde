@@ -98,12 +98,27 @@ async function addTrail(req, res) {
         const { parkId, nome, dificuldade, duracao, distancia, descricao, imagem, detalhes } = req.body;
         const id = `trilha-${crypto_1.default.randomUUID().slice(0, 8)}`;
         // Inserir tabela básica
-        await db_1.default.execute("INSERT INTO trails (id, park_id, nome, dificuldade, duracao, distancia, descricao, imagem, likes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)", [id, parkId, nome, dificuldade, duracao, distancia, descricao, imagem]);
+        await db_1.default.execute("INSERT INTO trails (id, park_id, nome, dificuldade, duracao, distancia, descricao, imagem, likes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)", [
+            id,
+            parkId,
+            nome,
+            dificuldade,
+            duracao || null,
+            distancia || null,
+            descricao,
+            imagem || null
+        ]);
         // Inserir tabela de detalhes (se fornecido)
         if (detalhes) {
             const recomendacoesJson = JSON.stringify(detalhes.recomendacoes || []);
             const fotosJson = JSON.stringify(detalhes.fotos || []);
-            await db_1.default.execute("INSERT INTO trail_details (trail_id, descricao_completa, dificuldade_detalhes, recomendacoes, fotos) VALUES (?, ?, ?, ?, ?)", [id, detalhes.descricaoCompleta, detalhes.dificuldadeDetalhes, recomendacoesJson, fotosJson]);
+            await db_1.default.execute("INSERT INTO trail_details (trail_id, descricao_completa, dificuldade_detalhes, recomendacoes, fotos) VALUES (?, ?, ?, ?, ?)", [
+                id,
+                detalhes.descricaoCompleta || "",
+                detalhes.dificuldadeDetalhes || "",
+                recomendacoesJson,
+                fotosJson
+            ]);
         }
         return res.status(201).json({ id, parkId, nome, dificuldade, duracao, distancia, descricao, imagem, likes: 0 });
     }
@@ -117,7 +132,16 @@ async function updateTrail(req, res) {
         const { id } = req.params;
         const { parkId, nome, dificuldade, duracao, distancia, descricao, imagem, detalhes } = req.body;
         // Atualizar tabela básica
-        await db_1.default.execute("UPDATE trails SET park_id = ?, nome = ?, dificuldade = ?, duracao = ?, distancia = ?, descricao = ?, imagem = ? WHERE id = ?", [parkId, nome, dificuldade, duracao, distancia, descricao, imagem, id]);
+        await db_1.default.execute("UPDATE trails SET park_id = ?, nome = ?, dificuldade = ?, duracao = ?, distancia = ?, descricao = ?, imagem = ? WHERE id = ?", [
+            parkId,
+            nome,
+            dificuldade,
+            duracao || null,
+            distancia || null,
+            descricao,
+            imagem || null,
+            id
+        ]);
         // Atualizar tabela de detalhes
         if (detalhes) {
             const recomendacoesJson = JSON.stringify(detalhes.recomendacoes || []);
@@ -125,10 +149,22 @@ async function updateTrail(req, res) {
             // Verificar se o detalhe já existe (UPSERT)
             const [existsRows] = await db_1.default.execute("SELECT trail_id FROM trail_details WHERE trail_id = ?", [id]);
             if (existsRows && existsRows.length > 0) {
-                await db_1.default.execute("UPDATE trail_details SET descricao_completa = ?, dificuldade_detalhes = ?, recomendacoes = ?, fotos = ? WHERE trail_id = ?", [detalhes.descricaoCompleta, detalhes.dificuldadeDetalhes, recomendacoesJson, fotosJson, id]);
+                await db_1.default.execute("UPDATE trail_details SET descricao_completa = ?, dificuldade_detalhes = ?, recomendacoes = ?, fotos = ? WHERE trail_id = ?", [
+                    detalhes.descricaoCompleta || "",
+                    detalhes.dificuldadeDetalhes || "",
+                    recomendacoesJson,
+                    fotosJson,
+                    id
+                ]);
             }
             else {
-                await db_1.default.execute("INSERT INTO trail_details (trail_id, descricao_completa, dificuldade_detalhes, recomendacoes, fotos) VALUES (?, ?, ?, ?, ?)", [id, detalhes.descricaoCompleta, detalhes.dificuldadeDetalhes, recomendacoesJson, fotosJson]);
+                await db_1.default.execute("INSERT INTO trail_details (trail_id, descricao_completa, dificuldade_detalhes, recomendacoes, fotos) VALUES (?, ?, ?, ?, ?)", [
+                    id,
+                    detalhes.descricaoCompleta || "",
+                    detalhes.dificuldadeDetalhes || "",
+                    recomendacoesJson,
+                    fotosJson
+                ]);
             }
         }
         return res.json({ message: "Trilha atualizada com sucesso!" });

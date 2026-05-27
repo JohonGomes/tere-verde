@@ -1,797 +1,536 @@
 import { 
-  User, Trail, Park, EventEntity, Restaurant, Lodging, Ticket, Comment, Review 
+  User, Trail, Park, EventEntity, Restaurant, Lodging, Ticket, Comment, Review, TicketType
 } from "../types";
 
-// Chaves para o LocalStorage
-const KEYS = {
-  USERS: "tere_verde_users",
-  PARKS: "tere_verde_parks",
-  TRAILS: "tere_verde_trails",
-  EVENTS: "tere_verde_events",
-  RESTAURANTS: "tere_verde_restaurants",
-  LODGINGS: "tere_verde_lodgings",
-  TICKETS: "tere_verde_tickets",
-  COMMENTS: "tere_verde_comments",
-  REVIEWS: "tere_verde_reviews",
+const BASE_URL = "http://localhost:3000/api";
+
+// Helper para montar cabeçalhos HTTP com token de autenticação JWT
+const getHeaders = () => {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  const token = localStorage.getItem("tere_verde_token");
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+  return headers;
 };
 
-// Dados Mock Iniciais
-const INITIAL_USERS: User[] = [
-  {
-    id: "user-admin",
-    name: "Administrador Terê Verde",
-    email: "admin@tereverde.com",
-    role: "admin",
-    cpf: "000.000.000-00",
-    profilePic: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "user-visitor",
-    name: "João Silva",
-    email: "visitante@tereverde.com",
-    role: "visitor",
-    cpf: "123.456.789-00",
-    profilePic: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100",
-    createdAt: new Date().toISOString(),
-  }
-];
-
-const INITIAL_PARKS: Park[] = [
-  {
-    id: "parque-nacional",
-    nome: "Parque Nacional da Serra dos Órgãos",
-    descricao: "Criado em 1939, protege a exuberante biodiversidade da Serra do Mar e formações rochosas icônicas como o Dedo de Deus e a Pedra do Sino.",
-    altitude: "2.263m",
-    area: "20.024 hectares",
-    imagem: "https://images.unsplash.com/photo-1682347812423-45911f8e6ef1?w=800",
-    limiteCapacidadeDiaria: 300,
-    funcionamento: "Terça a Domingo, das 8h às 17h",
-    comoChegar: {
-      carro: "Pela BR-116 sentido Teresópolis. A entrada principal fica na Av. Rotariana, s/n, Soberbo.",
-      onibus: "A partir da Rodoviária Novo Rio via linhas diretas para Teresópolis, depois táxi ou aplicativo até a portaria."
-    },
-    ingressoBase: 35.00
-  },
-  {
-    id: "parque-tres-picos",
-    nome: "Parque Estadual dos Três Picos",
-    descricao: "O maior parque estadual do Rio de Janeiro, famoso pelos imponentes picos de granito e vales de tirar o fôlego.",
-    altitude: "2.366m",
-    area: "65.113 hectares",
-    imagem: "https://images.unsplash.com/photo-1604991274937-b93f0c37f5e9?w=800",
-    limiteCapacidadeDiaria: 150,
-    funcionamento: "Diariamente, das 8h às 17h",
-    comoChegar: {
-      carro: "Acesso principal pela RJ-130 (Estrada Teresópolis-Friburgo), Km 46, entrada para o Vale dos Frades.",
-      onibus: "Linhas intermunicipais até a RJ-130 e transporte local/táxi até a entrada do Vale."
-    },
-    ingressoBase: 0.00
-  },
-  {
-    id: "parque-municipal",
-    nome: "Parque Natural Municipal Montanhas de Teresópolis",
-    descricao: "Área de conservação municipal perfeita para caminhadas leves, observação de aves e piqueniques em família, com vista para a Pedra da Tartaruga.",
-    altitude: "1.160m",
-    area: "4.397 hectares",
-    imagem: "https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?w=800",
-    limiteCapacidadeDiaria: 200,
-    funcionamento: "Terça a Domingo, das 8h às 16h",
-    comoChegar: {
-      carro: "Acesso pelo bairro Granja Florestal. Sinalização clara até a sede do parque.",
-      onibus: "Linhas urbanas regulares do centro de Teresópolis até o ponto final no bairro da Granja."
-    },
-    ingressoBase: 0.00
-  }
-];
-
-const INITIAL_TRAILS: Trail[] = [
-  {
-    id: "trilha-pedra-do-sino",
-    parkId: "parque-nacional",
-    nome: "Pedra do Sino",
-    dificuldade: "Difícil",
-    duracao: "8-10 horas",
-    distancia: "14 km",
-    descricao: "Trilha icônica com vista panorâmica da região serrana. O ponto culminante do parque oferece uma das vistas mais espetaculares da Serra dos Órgãos, com 360° de paisagens montanhosas.",
-    imagem: "https://images.unsplash.com/photo-1682347812423-45911f8e6ef1?w=800",
-    likes: 128,
-    detalhes: {
-      descricaoCompleta: "A Pedra do Sino, com 2.263 metros de altitude, é o ponto culminante do Parque Nacional da Serra dos Órgãos. A trilha é considerada uma das mais desafiadoras e recompensadoras do parque, oferecendo vistas panorâmicas incomparáveis da região serrana. O percurso passa por diferentes altitudes e ecossistemas, desde a floresta atlântica até os campos de altitude.",
-      dificuldadeDetalhes: "Trilha de nível difícil que exige bom condicionamento físico. Inclui trechos íngremes, caminhadas longas em pedras e trechos com exposição à altura.",
-      recomendacoes: [
-        "Começar a trilha bem cedo, preferencialmente às 6h da manhã",
-        "Levar no mínimo 3 litros de água por pessoa",
-        "Protetor solar, boné e agasalho para o topo (pode fazer frio)",
-        "Calçado de trekking com boa aderência",
-        "Lanches energéticos e frutas"
-      ],
-      fotos: [
-        "https://images.unsplash.com/photo-1682347812423-45911f8e6ef1?w=600",
-        "https://images.unsplash.com/photo-1604991274937-b93f0c37f5e9?w=600",
-        "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600"
-      ]
-    }
-  },
-  {
-    id: "trilha-travessia",
-    parkId: "parque-nacional",
-    nome: "Travessia Petrópolis-Teresópolis",
-    dificuldade: "Muito Difícil",
-    duracao: "3 dias",
-    distancia: "30 km",
-    descricao: "Uma das trilhas de montanhismo mais clássicas e espetaculares do Brasil, cruzando o coração da Serra dos Órgãos.",
-    imagem: "https://images.unsplash.com/photo-1604991274937-b93f0c37f5e9?w=800",
-    likes: 245,
-    detalhes: {
-      descricaoCompleta: "Considerada uma das travessias mais icônicas do Brasil, a Petrópolis-Teresópolis atravessa 30 km de montanhas, campos de altitude e mata atlântica. Durante três dias, os aventureiros passam por paisagens espetaculares incluindo o Morro do Açu e a Pedra do Sino.",
-      dificuldadeDetalhes: "Travessia de nível muito difícil. Exige excelente preparo físico, navegação e acampamento de alta montanha. Trechos expostos com cabos de aço.",
-      recomendacoes: [
-        "Reserva obrigatória dos abrigos/camping com antecedência",
-        "Contratar guia credenciado é altamente recomendado",
-        "Equipamento de montanhismo e frio extremo",
-        "Acompanhar atentamente a previsão do tempo"
-      ],
-      fotos: [
-        "https://images.unsplash.com/photo-1604991274937-b93f0c37f5e9?w=600",
-        "https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?w=600"
-      ]
-    }
-  },
-  {
-    id: "trilha-veu-noiva",
-    parkId: "parque-nacional",
-    nome: "Cachoeira Véu da Noiva",
-    dificuldade: "Fácil",
-    duracao: "2 horas",
-    distancia: "3 km",
-    descricao: "Trilha leve com cachoeira de 40 metros. Ideal para famílias e iniciantes, oferece banho em piscinas naturais de águas cristalinas.",
-    imagem: "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800",
-    likes: 89,
-    detalhes: {
-      descricaoCompleta: "A trilha até a Cachoeira Véu da Noiva é uma das mais acessíveis do parque, perfeita para famílias e pessoas que estão começando no trekking. A cachoeira tem aproximadamente 40 metros de altura e forma piscinas naturais ideais para banho.",
-      dificuldadeDetalhes: "Trilha de nível fácil, com poucos trechos de subida leve. O caminho é bem marcado e mantido.",
-      recomendacoes: [
-        "Levar roupa de banho e toalha",
-        "Protetor solar e repelente contra insetos",
-        "Calçado confortável que possa molhar"
-      ],
-      fotos: [
-        "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=600",
-        "https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?w=600"
-      ]
-    }
-  },
-  {
-    id: "trilha-cabeca-peixe",
-    parkId: "parque-tres-picos",
-    nome: "Trilha do Cabeça de Peixe",
-    dificuldade: "Difícil",
-    duracao: "6-7 horas",
-    distancia: "8 km",
-    descricao: "Subida íngreme e desafiadora por floresta fechada, culminando em uma vista incrível dos Três Picos de Friburgo.",
-    imagem: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800",
-    likes: 54,
-    detalhes: {
-      descricaoCompleta: "A subida da Cabeça de Peixe é uma das trilhas mais técnicas dos Três Picos, passando por trechos de escalaminhada pesada e matas virgens.",
-      dificuldadeDetalhes: "Nível difícil. Exige força nos membros superiores nos trechos de corda/raiz e muita atenção.",
-      recomendacoes: [
-        "Levar luvas para os trechos de cordas",
-        "Hidratação reforçada",
-        "Calçado profissional com excelente aderência"
-      ],
-      fotos: [
-        "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=600"
-      ]
-    }
-  },
-  {
-    id: "trilha-tartaruga",
-    parkId: "parque-municipal",
-    nome: "Trilha da Pedra da Tartaruga",
-    dificuldade: "Fácil",
-    duracao: "1.5 horas",
-    distancia: "2 km",
-    descricao: "Trilha curta e leve que leva até o platô da Pedra da Tartaruga, famosa área para prática de rapel e camping familiar.",
-    imagem: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800",
-    likes: 92,
-    detalhes: {
-      descricaoCompleta: "Uma caminhada agradável por estradas de terra e caminhos sombreados no Parque Municipal, proporcionando visuais espetaculares da Serra e das formações rochosas locais.",
-      dificuldadeDetalhes: "Nível fácil. Ideal para iniciantes, crianças e idosos com mobilidade ativa.",
-      recomendacoes: [
-        "Ótimo para observação do pôr do sol",
-        "Levar lanche para piquenique no topo",
-        "Uso de repelente recomendado"
-      ],
-      fotos: [
-        "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=600",
-        "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=600"
-      ]
-    }
-  }
-];
-
-const INITIAL_EVENTS: EventEntity[] = [
-  {
-    id: "event-inverno",
-    parkId: "parque-nacional",
-    nome: "Festival de Inverno Terê Verde",
-    descricao: "Três dias de palestras sobre ecologia, apresentações acústicas ao pôr do sol e oficinas gastronômicas de culinária serrana.",
-    data: "2026-07-15",
-    preco: 80.00,
-    imagem: "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800",
-    limiteCapacidadeDiaria: 100
-  },
-  {
-    id: "event-lua-cheia",
-    parkId: "parque-municipal",
-    nome: "Trilha Noturna da Lua Cheia",
-    descricao: "Caminhada guiada sob a luz do luar até a Pedra da Tartaruga, com observação astronômica e lanche coletivo.",
-    data: "2026-06-20",
-    preco: 40.00,
-    imagem: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800",
-    limiteCapacidadeDiaria: 45
-  }
-];
-
-const INITIAL_RESTAURANTS: Restaurant[] = [
-  {
-    id: "rest-manjericao",
-    nome: "Restaurante Manjericão",
-    tipo: "Culinária Saudável & Contemporânea",
-    descricao: "Pratos orgânicos e sofisticados preparados com ingredientes frescos cultivados localmente na região serrana.",
-    notaMedia: 4.8,
-    avaliacoesContagem: 24,
-    imagem: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600"
-  },
-  {
-    id: "rest-viva-italia",
-    nome: "Viva Itália Teresópolis",
-    tipo: "Massas & Gastronomia Italiana",
-    descricao: "Experiência italiana tradicional com massas artesanais feitas na casa, rodízio de pizzas no forno a lenha e gelateria própria.",
-    notaMedia: 4.6,
-    avaliacoesContagem: 31,
-    imagem: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600"
-  }
-];
-
-const INITIAL_LODGINGS: Lodging[] = [
-  {
-    id: "lodge-chale-vale",
-    nome: "Chalé dos Frades Aconchegante",
-    tipo: "Chalé & Pousada Ecológica",
-    descricao: "Localizado no coração do Vale dos Frades, com lareira, banheira de hidromassagem externa e vista panorâmica incrível das montanhas.",
-    notaMedia: 4.9,
-    avaliacoesContagem: 18,
-    imagem: "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?w=600"
-  },
-  {
-    id: "lodge-hotel-serrador",
-    nome: "Hotel Recanto do Serrador",
-    tipo: "Hotel Fazenda",
-    descricao: "Estrutura completa com piscina aquecida, trilhas internas, passeios a cavalo e pensão completa ideal para fins de semana.",
-    notaMedia: 4.5,
-    avaliacoesContagem: 29,
-    imagem: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600"
-  }
-];
-
-const INITIAL_TICKETS: Ticket[] = [
-  {
-    id: "ticket-1",
-    userId: "user-visitor",
-    userName: "João Silva",
-    userCpf: "123.456.789-00",
-    tipoItem: "event",
-    itemId: "event-lua-cheia",
-    itemName: "Trilha Noturna da Lua Cheia",
-    dataReserva: "2026-06-20",
-    dataCompra: new Date().toISOString(),
-    quantidade: 2,
-    valorTotal: 80.00,
-    status: "ativo",
-    qrCodeUrl: "TVERDE-E-LUACHEIA-1234"
-  },
-  {
-    id: "ticket-2",
-    userId: "user-visitor",
-    userName: "João Silva",
-    userCpf: "123.456.789-00",
-    tipoItem: "park",
-    itemId: "parque-nacional",
-    itemName: "Acesso Diário - Parque Nacional",
-    dataReserva: "2026-05-20",
-    dataCompra: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-    quantidade: 1,
-    valorTotal: 35.00,
-    status: "utilizado",
-    qrCodeUrl: "TVERDE-P-PARNASO-9988"
-  }
-];
-
-const INITIAL_COMMENTS: Comment[] = [
-  {
-    id: "comment-1",
-    userId: "user-visitor",
-    userName: "João Silva",
-    userPic: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100",
-    tipoDestino: "trail",
-    destinoId: "trilha-pedra-do-sino",
-    conteudo: "Uma subida desafiadora, mas a vista lá de cima vale cada centavo e gota de suor! O topo na Pedra do Sino é mágico.",
-    status: "Aprovado",
-    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
-  },
-  {
-    id: "comment-2",
-    userId: "user-visitor",
-    userName: "João Silva",
-    userPic: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100",
-    tipoDestino: "trail",
-    destinoId: "trilha-veu-noiva",
-    conteudo: "Água extremamente gelada, mas deliciosa! Trilha muito rápida e tranquila para crianças.",
-    status: "Aprovado",
-    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
-  },
-  {
-    id: "comment-pending-1",
-    userId: "user-visitor",
-    userName: "João Silva",
-    userPic: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100",
-    tipoDestino: "trail",
-    destinoId: "trilha-pedra-do-sino",
-    conteudo: "Vou fazer a trilha no próximo final de semana! Alguém sabe se o abrigo 4 já está aberto?",
-    status: "Pendente",
-    createdAt: new Date().toISOString()
-  }
-];
-
-const INITIAL_REVIEWS: Review[] = [
-  {
-    id: "review-1",
-    userId: "user-visitor",
-    userName: "João Silva",
-    userPic: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100",
-    tipoDestino: "restaurant",
-    destinoId: "rest-manjericao",
-    nota: 5,
-    comentario: "Atendimento exemplar e a salada com queijo de cabra artesanal estava incrível! Ambiente super integrado à natureza.",
-    createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString()
-  }
-];
-
-// Helper genérico de inicialização
-function getOrInitialize<T>(key: string, initialData: T[]): T[] {
-  if (typeof window === "undefined") return initialData;
-  const stored = localStorage.getItem(key);
-  if (!stored) {
-    localStorage.setItem(key, JSON.stringify(initialData));
-    return initialData;
-  }
-  return JSON.parse(stored);
-}
-
-function saveToLocalStorage<T>(key: string, data: T[]): void {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(key, JSON.stringify(data));
-}
-
-// Inicializadores
-const getLocalUsers = () => getOrInitialize(KEYS.USERS, INITIAL_USERS);
-const getLocalParks = () => getOrInitialize(KEYS.PARKS, INITIAL_PARKS);
-const getLocalTrails = () => getOrInitialize(KEYS.TRAILS, INITIAL_TRAILS);
-const getLocalEvents = () => getOrInitialize(KEYS.EVENTS, INITIAL_EVENTS);
-const getLocalRestaurants = () => getOrInitialize(KEYS.RESTAURANTS, INITIAL_RESTAURANTS);
-const getLocalLodgings = () => getOrInitialize(KEYS.LODGINGS, INITIAL_LODGINGS);
-const getLocalTickets = () => getOrInitialize(KEYS.TICKETS, INITIAL_TICKETS);
-const getLocalComments = () => getOrInitialize(KEYS.COMMENTS, INITIAL_COMMENTS);
-const getLocalReviews = () => getOrInitialize(KEYS.REVIEWS, INITIAL_REVIEWS);
-
-// API MOCK SERVICE EXPORTS (Laravel API Ready interfaces)
 export const ApiService = {
-  // --- AUTENTICAÇÃO ---
+  // ==========================================
+  // 🔑 AUTENTICAÇÃO REAL
+  // ==========================================
   login: async (email: string, password?: string): Promise<{ user: User; token: string }> => {
-    // Simula atraso da rede
-    await new Promise(r => setTimeout(r, 600));
-    const users = getLocalUsers();
-    const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
-    if (!user) {
-      throw new Error("E-mail ou senha incorretos.");
+    const res = await fetch(`${BASE_URL}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password: password || "SenhaSegura123" })
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || "E-mail ou senha incorretos.");
     }
-    // Token JWT simulado
-    const token = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.simulated_jwt_for_${user.id}`;
-    return { user, token };
+    return res.json();
   },
 
   register: async (name: string, email: string, cpf: string, role: "visitor" | "admin" = "visitor"): Promise<{ user: User; token: string }> => {
-    await new Promise(r => setTimeout(r, 600));
-    const users = getLocalUsers();
-    
-    if (users.some(u => u.email.toLowerCase() === email.toLowerCase())) {
-      throw new Error("E-mail já cadastrado.");
+    const res = await fetch(`${BASE_URL}/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, cpf, password: "SenhaSegura123", role })
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || "Erro ao realizar cadastro.");
     }
-    if (users.some(u => u.cpf === cpf)) {
-      throw new Error("CPF já cadastrado.");
-    }
-
-    const newUser: User = {
-      id: `user-${Date.now()}`,
-      name,
-      email,
-      role,
-      cpf,
-      profilePic: `https://images.unsplash.com/photo-${1500000000000 + Math.floor(Math.random() * 999999)}?w=100`,
-      createdAt: new Date().toISOString()
-    };
-
-    users.push(newUser);
-    saveToLocalStorage(KEYS.USERS, users);
-
-    const token = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.simulated_jwt_for_${newUser.id}`;
-    return { user: newUser, token };
+    return res.json();
   },
 
   updateProfile: async (userId: string, name: string, cpf: string): Promise<User> => {
-    await new Promise(r => setTimeout(r, 400));
-    const users = getLocalUsers();
-    const index = users.findIndex(u => u.id === userId);
-    if (index === -1) throw new Error("Usuário não encontrado.");
-    
-    users[index] = { ...users[index], name, cpf };
-    saveToLocalStorage(KEYS.USERS, users);
-    return users[index];
+    const res = await fetch(`${BASE_URL}/auth/profile/update`, {
+      method: "PUT",
+      headers: getHeaders(),
+      body: JSON.stringify({ name, cpf })
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || "Erro ao atualizar dados do perfil.");
+    }
+    const data = await res.json();
+    return data.user;
   },
 
-  // --- PARQUES & TRILHAS ---
+  // ==========================================
+  // 🏞️ PARQUES & TRILHAS REAL
+  // ==========================================
   getParks: async (): Promise<Park[]> => {
-    return getLocalParks();
+    const res = await fetch(`${BASE_URL}/parks`);
+    if (!res.ok) throw new Error("Erro ao buscar parques do banco de dados.");
+    const data = await res.json();
+    return data.map((p: any) => ({
+      ...p,
+      ingressoBase: Number(p.ingressoBase)
+    }));
   },
 
   getTrails: async (parkId?: string): Promise<Trail[]> => {
-    const trails = getLocalTrails();
+    const res = await fetch(`${BASE_URL}/trails`);
+    if (!res.ok) throw new Error("Erro ao buscar catálogo de trilhas.");
+    const data: Trail[] = await res.json();
+    
+    // Mapear likes dinamicamente. Se o usuário curtiu a trilha, marcamos
+    // Essa simulação pode persistir localmente no frontend, ou ler do banco
+    const mapped = data.map(t => ({
+      ...t,
+      likedByUser: localStorage.getItem(`liked_${t.id}`) === "true"
+    }));
+
     if (parkId) {
-      return trails.filter(t => t.parkId === parkId);
+      return mapped.filter(t => t.parkId === parkId);
     }
-    return trails;
+    return mapped;
   },
 
   likeTrail: async (trailId: string, userId: string): Promise<Trail> => {
-    const trails = getLocalTrails();
-    const index = trails.findIndex(t => t.id === trailId);
-    if (index === -1) throw new Error("Trilha não encontrada.");
-    
-    const trail = trails[index];
-    if (trail.likedByUser) {
-      trail.likes = Math.max(0, trail.likes - 1);
-      trail.likedByUser = false;
-    } else {
-      trail.likes += 1;
-      trail.likedByUser = true;
+    const res = await fetch(`${BASE_URL}/trails/like/${trailId}`, {
+      method: "POST",
+      headers: getHeaders()
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || "Erro ao curtir trilha.");
     }
+    const data = await res.json();
     
-    trails[index] = trail;
-    saveToLocalStorage(KEYS.TRAILS, trails);
-    return trail;
+    // Salvar estado da curtida no localStorage do browser apenas para controle visual rápido
+    localStorage.setItem(`liked_${trailId}`, String(data.liked));
+
+    // Buscar lista atualizada
+    const trails = await ApiService.getTrails();
+    const updatedTrail = trails.find(t => t.id === trailId);
+    if (!updatedTrail) throw new Error("Trilha não encontrada.");
+    return updatedTrail;
   },
 
-  // --- EVENTOS ---
+  // ==========================================
+  // 📅 EVENTOS REAL
+  // ==========================================
   getEvents: async (parkId?: string): Promise<EventEntity[]> => {
-    const events = getLocalEvents();
+    const res = await fetch(`${BASE_URL}/events`);
+    if (!res.ok) throw new Error("Erro ao carregar eventos.");
+    const data = await res.json();
+    const mapped = data.map((e: any) => ({
+      ...e,
+      preco: Number(e.preco)
+    }));
     if (parkId) {
-      return events.filter(e => e.parkId === parkId);
+      return mapped.filter((e: any) => e.parkId === parkId);
     }
-    return events;
+    return mapped;
   },
 
-  // --- RESTAURANTES & HOSPEDAGENS ---
+  // ==========================================
+  // 🍕 RESTAURANTES & HOSPEDAGENS REAL
+  // ==========================================
   getRestaurants: async (): Promise<Restaurant[]> => {
-    return getLocalRestaurants();
+    const res = await fetch(`${BASE_URL}/restaurants`);
+    if (!res.ok) throw new Error("Erro ao carregar restaurantes.");
+    const data = await res.json();
+    return data.map((r: any) => ({
+      ...r,
+      notaMedia: Number(r.notaMedia)
+    }));
   },
 
   getLodgings: async (): Promise<Lodging[]> => {
-    return getLocalLodgings();
+    const res = await fetch(`${BASE_URL}/lodgings`);
+    if (!res.ok) throw new Error("Erro ao carregar hospedagens.");
+    const data = await res.json();
+    return data.map((l: any) => ({
+      ...l,
+      notaMedia: Number(l.notaMedia)
+    }));
   },
 
-  // --- COMENTÁRIOS (COM MODERAÇÃO RN01) ---
+  // ==========================================
+  // 💬 COMENTÁRIOS / DEPOIMENTOS REAL (RN01)
+  // ==========================================
   getComments: async (tipoDestino: "trail" | "park" | "event", destinoId: string): Promise<Comment[]> => {
-    const comments = getLocalComments();
-    return comments.filter(c => c.tipoDestino === tipoDestino && c.destinoId === destinoId && c.status === "Aprovado");
+    // Mapear destinoId amigável para o targetName esperado pelo banco de dados
+    let targetName = destinoId;
+    if (destinoId === "trilha-pedra-do-sino") targetName = "Pedra do Sino";
+    else if (destinoId === "trilha-cartao-postal") targetName = "Cartão Postal";
+    else if (destinoId === "trilha-veu-noiva") targetName = "Véu da Noiva";
+    else if (destinoId === "parque-nacional") targetName = "Parque Nacional da Serra dos Órgãos";
+    else if (destinoId === "parque-tres-picos") targetName = "Parque Estadual dos Três Picos";
+    else if (destinoId === "parque-municipal") targetName = "Parque Natural Municipal Montanhas";
+
+    const res = await fetch(`${BASE_URL}/comments?targetName=${encodeURIComponent(targetName)}&targetType=${tipoDestino}`);
+    if (!res.ok) throw new Error("Erro ao carregar comentários.");
+    const data = await res.json();
+
+    // Mapear propriedades para se manterem compatíveis com o frontend
+    return data.map((c: any) => ({
+      id: c.id,
+      userId: c.userId,
+      userName: c.userName,
+      userPic: c.userPic,
+      tipoDestino: c.targetType,
+      destinoId: destinoId, // Manter o ID do roteador local
+      conteudo: c.content,
+      status: c.status,
+      createdAt: c.createdAt
+    }));
+  },
+
+  getCommentsForDest: async (tipoDestino: "trail" | "park" | "event", destinoId: string): Promise<Comment[]> => {
+    return ApiService.getComments(tipoDestino, destinoId);
   },
 
   getPendingComments: async (): Promise<Comment[]> => {
-    const comments = getLocalComments();
-    return comments.filter(c => c.status === "Pendente");
+    const res = await fetch(`${BASE_URL}/comments`, { headers: getHeaders() });
+    if (!res.ok) throw new Error("Erro ao buscar comentários sob moderação.");
+    const data = await res.json();
+
+    // Filtra apenas os pendentes e mapeia
+    return data
+      .filter((c: any) => c.status === "Pendente")
+      .map((c: any) => ({
+        id: c.id,
+        userId: c.userId,
+        userName: c.userName,
+        userPic: c.userPic,
+        tipoDestino: c.targetType,
+        destinoId: c.targetName === "Pedra do Sino" ? "trilha-pedra-do-sino" : c.targetName,
+        conteudo: c.content,
+        status: c.status,
+        createdAt: c.createdAt
+      }));
   },
 
-  addComment: async (userId: string, userName: string, userPic: string | undefined, tipoDestino: "trail" | "park" | "event", destinoId: string, conteudo: string): Promise<Comment> => {
-    const comments = getLocalComments();
-    
-    const newComment: Comment = {
-      id: `comment-${Date.now()}`,
-      userId,
-      userName,
-      userPic,
-      tipoDestino,
-      destinoId,
-      conteudo,
-      status: "Pendente", // Regra de Negócio RN01: entra pendente por padrão
-      createdAt: new Date().toISOString()
-    };
+  addComment: async (payload: {
+    userName: string;
+    userEmail: string;
+    userProfilePic?: string;
+    tipoDestino: "trail" | "park" | "event";
+    nomeDestino: string;
+    conteudo: string;
+    imagem?: string;
+  }): Promise<Comment> => {
+    let targetName = payload.nomeDestino;
+    if (payload.nomeDestino === "trilha-pedra-do-sino") targetName = "Pedra do Sino";
+    else if (payload.nomeDestino === "trilha-cartao-postal") targetName = "Cartão Postal";
+    else if (payload.nomeDestino === "trilha-veu-noiva") targetName = "Véu da Noiva";
+    else if (payload.nomeDestino === "parque-nacional") targetName = "Parque Nacional da Serra dos Órgãos";
+    else if (payload.nomeDestino === "parque-tres-picos") targetName = "Parque Estadual dos Três Picos";
+    else if (payload.nomeDestino === "parque-municipal") targetName = "Parque Natural Municipal Montanhas";
 
-    comments.unshift(newComment);
-    saveToLocalStorage(KEYS.COMMENTS, comments);
-    return newComment;
+    const res = await fetch(`${BASE_URL}/comments`, {
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify({
+        targetName,
+        targetType: payload.tipoDestino,
+        content: payload.conteudo
+      })
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || "Erro ao publicar depoimento.");
+    }
+    const data = await res.json();
+    const c = data.comment;
+
+    return {
+      id: c.id,
+      userId: c.userId,
+      userName: c.userName,
+      userPic: c.userPic,
+      tipoDestino: c.targetType,
+      destinoId: payload.nomeDestino,
+      conteudo: c.content,
+      status: c.status,
+      createdAt: c.createdAt
+    };
   },
 
   moderateComment: async (commentId: string, status: "Aprovado" | "Reprovado"): Promise<Comment> => {
-    const comments = getLocalComments();
-    const index = comments.findIndex(c => c.id === commentId);
-    if (index === -1) throw new Error("Comentário não encontrado.");
-    
-    comments[index].status = status;
-    saveToLocalStorage(KEYS.COMMENTS, comments);
-    return comments[index];
+    const res = await fetch(`${BASE_URL}/comments/moderate/${commentId}`, {
+      method: "PATCH",
+      headers: getHeaders(),
+      body: JSON.stringify({ status })
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || "Erro ao moderar comentário.");
+    }
+    return { id: commentId, status } as any;
   },
 
-  // --- AVALIAÇÕES (RESTAURANTES/HOSPEDAGENS RN02) ---
+  // ==========================================
+  // ⭐️ AVALIAÇÕES ESTRELAS REAL (RN02)
+  // ==========================================
   getReviews: async (tipoDestino: "restaurant" | "lodging", destinoId: string): Promise<Review[]> => {
-    const reviews = getLocalReviews();
-    return reviews.filter(r => r.tipoDestino === tipoDestino && r.destinoId === destinoId);
+    const mappedType = tipoDestino === "restaurant" ? "Restaurante" : "Hospedagem";
+    const res = await fetch(`${BASE_URL}/reviews?targetId=${destinoId}&targetType=${mappedType}`);
+    if (!res.ok) throw new Error("Erro ao buscar avaliações.");
+    const data = await res.json();
+
+    return data.map((r: any) => ({
+      id: r.id,
+      userId: r.userId,
+      userName: r.userName,
+      userPic: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100",
+      tipoDestino: tipoDestino,
+      destinoId: r.targetId,
+      nota: r.rating,
+      comentario: r.comment,
+      createdAt: r.createdAt
+    }));
   },
 
   addReview: async (userId: string, userName: string, userPic: string | undefined, tipoDestino: "restaurant" | "lodging", destinoId: string, nota: number, comentario: string): Promise<Review> => {
-    const reviews = getLocalReviews();
-    
-    const newReview: Review = {
-      id: `review-${Date.now()}`,
-      userId,
-      userName,
-      userPic,
-      tipoDestino,
-      destinoId,
-      nota,
-      comentario,
-      createdAt: new Date().toISOString()
-    };
-
-    reviews.unshift(newReview);
-    saveToLocalStorage(KEYS.REVIEWS, reviews);
-
-    // Atualiza nota média do estabelecimento
-    if (tipoDestino === "restaurant") {
-      const rests = getLocalRestaurants();
-      const idx = rests.findIndex(r => r.id === destinoId);
-      if (idx !== -1) {
-        const itemReviews = reviews.filter(r => r.tipoDestino === "restaurant" && r.destinoId === destinoId);
-        const sum = itemReviews.reduce((a, b) => a + b.nota, 0);
-        rests[idx].notaMedia = Number((sum / itemReviews.length).toFixed(1));
-        rests[idx].avaliacoesContagem = itemReviews.length;
-        saveToLocalStorage(KEYS.RESTAURANTS, rests);
-      }
-    } else {
-      const lodges = getLocalLodgings();
-      const idx = lodges.findIndex(l => l.id === destinoId);
-      if (idx !== -1) {
-        const itemReviews = reviews.filter(r => r.tipoDestino === "lodging" && r.destinoId === destinoId);
-        const sum = itemReviews.reduce((a, b) => a + b.nota, 0);
-        lodges[idx].notaMedia = Number((sum / itemReviews.length).toFixed(1));
-        lodges[idx].avaliacoesContagem = itemReviews.length;
-        saveToLocalStorage(KEYS.LODGINGS, lodges);
-      }
+    const mappedType = tipoDestino === "restaurant" ? "Restaurante" : "Hospedagem";
+    const res = await fetch(`${BASE_URL}/reviews`, {
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify({
+        targetId: destinoId,
+        targetType: mappedType,
+        rating: nota,
+        comment: comentario
+      })
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || "Erro ao registrar avaliação.");
     }
+    const data = await res.json();
+    const r = data.review;
 
-    return newReview;
+    return {
+      id: r.id,
+      userId: r.userId,
+      userName: r.userName,
+      userPic: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100",
+      tipoDestino: tipoDestino,
+      destinoId: r.targetId,
+      nota: r.rating,
+      comentario: r.comment,
+      createdAt: r.createdAt
+    };
   },
 
-  // --- INGRESSOS & RESERVAS (CAPACIDADE LIMITADA RN03) ---
+  // ==========================================
+  // 🎟️ INGRESSOS & RECEPÇÃO REAL (RN03)
+  // ==========================================
   buyTicket: async (userId: string, userName: string, userCpf: string, tipoItem: TicketType, itemId: string, itemName: string, date: string, quantity: number, pricePerItem: number): Promise<Ticket> => {
-    await new Promise(r => setTimeout(r, 600));
-    
-    const tickets = getLocalTickets();
-
-    // Validar Capacidade Máxima do Parque/Evento (RN03)
-    let maxCapacity = 300;
-    if (tipoItem === "park") {
-      const park = getLocalParks().find(p => p.id === itemId);
-      if (park) maxCapacity = park.limiteCapacidadeDiaria;
-    } else if (tipoItem === "event") {
-      const ev = getLocalEvents().find(e => e.id === itemId);
-      if (ev) maxCapacity = ev.limiteCapacidadeDiaria;
-    } else {
-      // Para trilhas, o limite padrão baseia-se no parque
-      const trail = getLocalTrails().find(t => t.id === itemId);
-      if (trail) {
-        const park = getLocalParks().find(p => p.id === trail.parkId);
-        if (park) maxCapacity = Math.floor(park.limiteCapacidadeDiaria * 0.4); // 40% da capacidade total do parque
-      }
+    const res = await fetch(`${BASE_URL}/parks/tickets/buy`, {
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify({
+        targetId: itemId,
+        targetType: tipoItem === "park" ? "park" : "event",
+        date,
+        quantity,
+        totalPrice: pricePerItem * quantity
+      })
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || "Capacidade diária esgotada para esta data!");
     }
+    const data = await res.json();
+    const t = data.ticket;
 
-    // Calcula quantidade total já vendida para esta data e item
-    const soldTickets = tickets
-      .filter(t => t.itemId === itemId && t.dataReserva === date && t.status !== "cancelado")
-      .reduce((acc, curr) => acc + curr.quantidade, 0);
-
-    if (soldTickets + quantity > maxCapacity) {
-      throw new Error(`Ingressos esgotados para esta data! Capacidade disponível: ${maxCapacity - soldTickets} ingressos.`);
-    }
-
-    const newTicket: Ticket = {
-      id: `ticket-${Math.floor(100000 + Math.random() * 900000)}`,
-      userId,
+    return {
+      id: t.id,
+      userId: t.userId,
       userName,
       userCpf,
       tipoItem,
-      itemId,
+      itemId: t.targetId,
       itemName,
-      dataReserva: date,
-      dataCompra: new Date().toISOString(),
-      quantidade: quantity,
-      valorTotal: pricePerItem * quantity,
-      status: "ativo",
-      qrCodeUrl: `TVERDE-${tipoItem.toUpperCase().substring(0, 3)}-${itemId.toUpperCase().substring(0, 5)}-${Math.floor(1000 + Math.random() * 9000)}`
+      dataReserva: t.date,
+      dataCompra: t.createdAt || new Date().toISOString(),
+      quantidade: t.quantity,
+      valorTotal: Number(t.totalPrice),
+      status: t.status === "active" ? "ativo" : "cancelado",
+      qrCodeUrl: t.qrCode
     };
-
-    tickets.unshift(newTicket);
-    saveToLocalStorage(KEYS.TICKETS, tickets);
-    return newTicket;
   },
 
   getTicketsByUser: async (userId: string): Promise<Ticket[]> => {
-    return getLocalTickets().filter(t => t.userId === userId);
+    const res = await fetch(`${BASE_URL}/parks/tickets`, { headers: getHeaders() });
+    if (!res.ok) throw new Error("Erro ao buscar seus ingressos.");
+    const data = await res.json();
+
+    return data.map((t: any) => ({
+      id: t.id,
+      userId: t.userId,
+      userName: t.userName,
+      userCpf: t.userCpf,
+      tipoItem: t.targetType,
+      itemId: t.targetId,
+      itemName: t.targetType === "park" ? "Acesso Diário - Parque" : "Ingresso para Evento",
+      dataReserva: t.date,
+      dataCompra: t.date,
+      quantidade: t.quantity,
+      valorTotal: Number(t.totalPrice),
+      status: t.checkedIn ? "utilizado" : (t.status === "active" ? "ativo" : "cancelado"),
+      qrCodeUrl: t.qrCode
+    }));
   },
 
   getAllTickets: async (): Promise<Ticket[]> => {
-    return getLocalTickets();
+    const res = await fetch(`${BASE_URL}/parks/tickets`, { headers: getHeaders() });
+    if (!res.ok) throw new Error("Erro ao carregar ingressos.");
+    const data = await res.json();
+
+    return data.map((t: any) => ({
+      id: t.id,
+      userId: t.userId,
+      userName: t.userName,
+      userCpf: t.userCpf,
+      tipoItem: t.targetType,
+      itemId: t.targetId,
+      itemName: t.targetType === "park" ? "Acesso Diário - Parque" : "Ingresso para Evento",
+      dataReserva: t.date,
+      dataCompra: t.date,
+      quantidade: t.quantity,
+      valorTotal: Number(t.totalPrice),
+      status: t.checkedIn ? "utilizado" : (t.status === "active" ? "ativo" : "cancelado"),
+      qrCodeUrl: t.qrCode
+    }));
   },
 
   checkInTicket: async (query: string): Promise<Ticket> => {
-    await new Promise(r => setTimeout(r, 500));
-    const tickets = getLocalTickets();
-    
-    // Busca por QR Code exato ou por CPF (limpa caracteres)
+    const resAll = await fetch(`${BASE_URL}/parks/tickets`, { headers: getHeaders() });
+    if (!resAll.ok) throw new Error("Erro de conexão na busca para check-in.");
+    const tickets: any[] = await resAll.json();
+
     const normalizedQuery = query.replace(/[^\w\d]/g, "").toUpperCase();
-    const index = tickets.findIndex(t => {
-      const ticketQr = t.qrCodeUrl.toUpperCase();
+    const found = tickets.find(t => {
+      const ticketQr = t.qrCode.toUpperCase();
       const ticketCpf = t.userCpf.replace(/[^\d]/g, "");
       return ticketQr === query || ticketQr === normalizedQuery || ticketCpf === query || ticketCpf === normalizedQuery;
     });
 
-    if (index === -1) {
+    if (!found) {
       throw new Error("Nenhum ingresso ativo encontrado com este QR Code ou CPF.");
     }
 
-    const ticket = tickets[index];
-    if (ticket.status === "utilizado") {
-      throw new Error(`Este ingresso já foi utilizado em ${new Date(ticket.dataReserva).toLocaleDateString()}!`);
-    }
-    if (ticket.status === "cancelado") {
-      throw new Error("Este ingresso foi cancelado pelo cliente/administrador.");
+    const resCheck = await fetch(`${BASE_URL}/parks/tickets/check-in/${found.id}`, {
+      method: "POST",
+      headers: getHeaders()
+    });
+
+    if (!resCheck.ok) {
+      const err = await resCheck.json();
+      throw new Error(err.message || "Erro ao efetuar check-in.");
     }
 
-    ticket.status = "utilizado";
-    tickets[index] = ticket;
-    saveToLocalStorage(KEYS.TICKETS, tickets);
-    return ticket;
+    return {
+      id: found.id,
+      userId: found.userId,
+      userName: found.userName,
+      userCpf: found.userCpf,
+      tipoItem: found.targetType,
+      itemId: found.targetId,
+      itemName: found.targetType === "park" ? "Acesso Diário" : "Ingresso",
+      dataReserva: found.date,
+      dataCompra: found.date,
+      quantidade: found.quantity,
+      valorTotal: Number(found.totalPrice),
+      status: "utilizado",
+      qrCodeUrl: found.qrCode
+    };
   },
 
-  // --- RELATÓRIOS CONSOLIDADOS (RF07) ---
+  // ==========================================
+  // 📊 RELATÓRIOS REAIS
+  // ==========================================
   getSalesReport: async (): Promise<any[]> => {
-    const tickets = getLocalTickets().filter(t => t.status !== "cancelado");
+    const res = await fetch(`${BASE_URL}/parks/tickets`, { headers: getHeaders() });
+    if (!res.ok) throw new Error("Erro ao carregar relatórios.");
+    const tickets: any[] = await res.json();
     
-    // Retorna resumo por item vendido
+    const activeTickets = tickets.filter(t => t.status === "active" || t.checkedIn);
     const summary: Record<string, { name: string; quantity: number; revenue: number }> = {};
     
-    tickets.forEach(t => {
-      if (!summary[t.itemName]) {
-        summary[t.itemName] = { name: t.itemName, quantity: 0, revenue: 0 };
+    activeTickets.forEach(t => {
+      const itemName = t.targetType === "park" ? "Acesso Diário - Parque" : "Ingresso para Evento";
+      if (!summary[itemName]) {
+        summary[itemName] = { name: itemName, quantity: 0, revenue: 0 };
       }
-      summary[t.itemName].quantity += t.quantidade;
-      summary[t.itemName].revenue += t.valorTotal;
+      summary[itemName].quantity += t.quantity;
+      summary[itemName].revenue += Number(t.totalPrice);
     });
 
     return Object.values(summary);
   },
 
-  // --- CRUD GERAL ADMIN (RF03) ---
+  // ==========================================
+  // 🛠️ CRUD GERENCIAL ADMIN REAL
+  // ==========================================
   createEntity: async (tipo: "park" | "trail" | "event" | "restaurant" | "lodging", entity: any): Promise<any> => {
-    await new Promise(r => setTimeout(r, 400));
-    
-    if (tipo === "park") {
-      const parks = getLocalParks();
-      const newPark: Park = { id: `park-${Date.now()}`, ...entity };
-      parks.push(newPark);
-      saveToLocalStorage(KEYS.PARKS, parks);
-      return newPark;
-    } else if (tipo === "trail") {
-      const trails = getLocalTrails();
-      const newTrail: Trail = { id: `trail-${Date.now()}`, likes: 0, ...entity };
-      trails.push(newTrail);
-      saveToLocalStorage(KEYS.TRAILS, trails);
-      return newTrail;
-    } else if (tipo === "event") {
-      const events = getLocalEvents();
-      const newEvent: EventEntity = { id: `event-${Date.now()}`, ...entity };
-      events.push(newEvent);
-      saveToLocalStorage(KEYS.EVENTS, events);
-      return newEvent;
-    } else if (tipo === "restaurant") {
-      const rests = getLocalRestaurants();
-      const newRest: Restaurant = { id: `rest-${Date.now()}`, notaMedia: 0, avaliacoesContagem: 0, ...entity };
-      rests.push(newRest);
-      saveToLocalStorage(KEYS.RESTAURANTS, rests);
-      return newRest;
-    } else if (tipo === "lodging") {
-      const lodges = getLocalLodgings();
-      const newLodge: Lodging = { id: `lodge-${Date.now()}`, notaMedia: 0, avaliacoesContagem: 0, ...entity };
-      lodges.push(newLodge);
-      saveToLocalStorage(KEYS.LODGINGS, lodges);
-      return newLodge;
+    let url = `${BASE_URL}`;
+    if (tipo === "park") url += `/parks`;
+    else if (tipo === "trail") url += `/trails`;
+    else if (tipo === "event") url += `/events`;
+    else if (tipo === "restaurant") url += `/restaurants`;
+    else if (tipo === "lodging") url += `/lodgings`;
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify(entity)
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || `Erro ao adicionar ${tipo}.`);
     }
+    return res.json();
   },
 
   updateEntity: async (tipo: "park" | "trail" | "event" | "restaurant" | "lodging", id: string, entity: any): Promise<any> => {
-    await new Promise(r => setTimeout(r, 400));
-    
-    if (tipo === "park") {
-      const parks = getLocalParks();
-      const idx = parks.findIndex(p => p.id === id);
-      if (idx === -1) throw new Error("Parque não encontrado.");
-      parks[idx] = { ...parks[idx], ...entity };
-      saveToLocalStorage(KEYS.PARKS, parks);
-      return parks[idx];
-    } else if (tipo === "trail") {
-      const trails = getLocalTrails();
-      const idx = trails.findIndex(t => t.id === id);
-      if (idx === -1) throw new Error("Trilha não encontrada.");
-      trails[idx] = { ...trails[idx], ...entity };
-      saveToLocalStorage(KEYS.TRAILS, trails);
-      return trails[idx];
-    } else if (tipo === "event") {
-      const events = getLocalEvents();
-      const idx = events.findIndex(e => e.id === id);
-      if (idx === -1) throw new Error("Evento não encontrado.");
-      events[idx] = { ...events[idx], ...entity };
-      saveToLocalStorage(KEYS.EVENTS, events);
-      return events[idx];
-    } else if (tipo === "restaurant") {
-      const rests = getLocalRestaurants();
-      const idx = rests.findIndex(r => r.id === id);
-      if (idx === -1) throw new Error("Restaurante não encontrado.");
-      rests[idx] = { ...rests[idx], ...entity };
-      saveToLocalStorage(KEYS.RESTAURANTS, rests);
-      return rests[idx];
-    } else if (tipo === "lodging") {
-      const lodges = getLocalLodgings();
-      const idx = lodges.findIndex(l => l.id === id);
-      if (idx === -1) throw new Error("Hospedagem não encontrada.");
-      lodges[idx] = { ...lodges[idx], ...entity };
-      saveToLocalStorage(KEYS.LODGINGS, lodges);
-      return lodges[idx];
+    let url = `${BASE_URL}`;
+    if (tipo === "park") url += `/parks/${id}`;
+    else if (tipo === "trail") url += `/trails/${id}`;
+    else if (tipo === "event") url += `/events/${id}`;
+    else if (tipo === "restaurant") url += `/restaurants/${id}`;
+    else if (tipo === "lodging") url += `/lodgings/${id}`;
+
+    const res = await fetch(url, {
+      method: "PUT",
+      headers: getHeaders(),
+      body: JSON.stringify(entity)
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || `Erro ao atualizar ${tipo}.`);
     }
+    return entity;
   },
 
   deleteEntity: async (tipo: "park" | "trail" | "event" | "restaurant" | "lodging", id: string): Promise<boolean> => {
-    await new Promise(r => setTimeout(r, 400));
-    
-    if (tipo === "park") {
-      const parks = getLocalParks();
-      const filtered = parks.filter(p => p.id !== id);
-      saveToLocalStorage(KEYS.PARKS, filtered);
-    } else if (tipo === "trail") {
-      const trails = getLocalTrails();
-      const filtered = trails.filter(t => t.id !== id);
-      saveToLocalStorage(KEYS.TRAILS, filtered);
-    } else if (tipo === "event") {
-      const events = getLocalEvents();
-      const filtered = events.filter(e => e.id !== id);
-      saveToLocalStorage(KEYS.EVENTS, filtered);
-    } else if (tipo === "restaurant") {
-      const rests = getLocalRestaurants();
-      const filtered = rests.filter(r => r.id !== id);
-      saveToLocalStorage(KEYS.RESTAURANTS, filtered);
-    } else if (tipo === "lodging") {
-      const lodges = getLocalLodgings();
-      const filtered = lodges.filter(l => l.id !== id);
-      saveToLocalStorage(KEYS.LODGINGS, filtered);
+    let url = `${BASE_URL}`;
+    if (tipo === "park") url += `/parks/${id}`;
+    else if (tipo === "trail") url += `/trails/${id}`;
+    else if (tipo === "event") url += `/events/${id}`;
+    else if (tipo === "restaurant") url += `/restaurants/${id}`;
+    else if (tipo === "lodging") url += `/lodgings/${id}`;
+
+    const res = await fetch(url, {
+      method: "DELETE",
+      headers: getHeaders()
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || `Erro ao excluir ${tipo}.`);
     }
     return true;
   }

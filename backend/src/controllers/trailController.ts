@@ -113,7 +113,16 @@ export async function addTrail(req: AuthenticatedRequest, res: Response) {
     // Inserir tabela básica
     await pool.execute(
       "INSERT INTO trails (id, park_id, nome, dificuldade, duracao, distancia, descricao, imagem, likes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)",
-      [id, parkId, nome, dificuldade, duracao, distancia, descricao, imagem]
+      [
+        id,
+        parkId,
+        nome,
+        dificuldade,
+        duracao || null,
+        distancia || null,
+        descricao,
+        imagem || null
+      ]
     );
 
     // Inserir tabela de detalhes (se fornecido)
@@ -122,7 +131,13 @@ export async function addTrail(req: AuthenticatedRequest, res: Response) {
       const fotosJson = JSON.stringify(detalhes.fotos || []);
       await pool.execute(
         "INSERT INTO trail_details (trail_id, descricao_completa, dificuldade_detalhes, recomendacoes, fotos) VALUES (?, ?, ?, ?, ?)",
-        [id, detalhes.descricaoCompleta, detalhes.dificuldadeDetalhes, recomendacoesJson, fotosJson]
+        [
+          id,
+          detalhes.descricaoCompleta || "",
+          detalhes.dificuldadeDetalhes || "",
+          recomendacoesJson,
+          fotosJson
+        ]
       );
     }
 
@@ -141,7 +156,16 @@ export async function updateTrail(req: AuthenticatedRequest, res: Response) {
     // Atualizar tabela básica
     await pool.execute(
       "UPDATE trails SET park_id = ?, nome = ?, dificuldade = ?, duracao = ?, distancia = ?, descricao = ?, imagem = ? WHERE id = ?",
-      [parkId, nome, dificuldade, duracao, distancia, descricao, imagem, id]
+      [
+        parkId,
+        nome,
+        dificuldade,
+        duracao || null,
+        distancia || null,
+        descricao,
+        imagem || null,
+        id
+      ]
     );
 
     // Atualizar tabela de detalhes
@@ -154,12 +178,24 @@ export async function updateTrail(req: AuthenticatedRequest, res: Response) {
       if (existsRows && existsRows.length > 0) {
         await pool.execute(
           "UPDATE trail_details SET descricao_completa = ?, dificuldade_detalhes = ?, recomendacoes = ?, fotos = ? WHERE trail_id = ?",
-          [detalhes.descricaoCompleta, detalhes.dificuldadeDetalhes, recomendacoesJson, fotosJson, id]
+          [
+            detalhes.descricaoCompleta || "",
+            detalhes.dificuldadeDetalhes || "",
+            recomendacoesJson,
+            fotosJson,
+            id
+          ]
         );
       } else {
         await pool.execute(
           "INSERT INTO trail_details (trail_id, descricao_completa, dificuldade_detalhes, recomendacoes, fotos) VALUES (?, ?, ?, ?, ?)",
-          [id, detalhes.descricaoCompleta, detalhes.dificuldadeDetalhes, recomendacoesJson, fotosJson]
+          [
+            id,
+            detalhes.descricaoCompleta || "",
+            detalhes.dificuldadeDetalhes || "",
+            recomendacoesJson,
+            fotosJson
+          ]
         );
       }
     }

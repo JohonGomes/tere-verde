@@ -23,7 +23,16 @@ export async function addEvent(req: AuthenticatedRequest, res: Response) {
 
     await pool.execute(
       "INSERT INTO events (id, park_id, nome, descricao, data, preco, limite_capacidade_diaria, imagem) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-      [id, parkId || null, nome, descricao, data, preco, limiteCapacidadeDiaria, imagem]
+      [
+        id,
+        parkId || null,
+        nome,
+        descricao,
+        data,
+        preco !== undefined ? preco : 0.00,
+        limiteCapacidadeDiaria !== undefined ? limiteCapacidadeDiaria : 50,
+        imagem || null
+      ]
     );
 
     return res.status(201).json({ id, parkId, nome, descricao, data, preco, limiteCapacidadeDiaria, imagem });
@@ -40,7 +49,16 @@ export async function updateEvent(req: AuthenticatedRequest, res: Response) {
 
     await pool.execute(
       "UPDATE events SET park_id = ?, nome = ?, descricao = ?, data = ?, preco = ?, limite_capacidade_diaria = ?, imagem = ? WHERE id = ?",
-      [parkId || null, nome, descricao, data, preco, limiteCapacidadeDiaria, imagem, id]
+      [
+        parkId || null,
+        nome,
+        descricao,
+        data,
+        preco !== undefined ? preco : 0.00,
+        limiteCapacidadeDiaria !== undefined ? limiteCapacidadeDiaria : 50,
+        imagem || null,
+        id
+      ]
     );
 
     return res.json({ message: "Evento atualizado com sucesso!" });
@@ -81,7 +99,7 @@ export async function addRestaurant(req: AuthenticatedRequest, res: Response) {
 
     await pool.execute(
       "INSERT INTO restaurants (id, nome, tipo, descricao, imagem, nota_media, avaliacoes_contagem) VALUES (?, ?, ?, ?, ?, 5.00, 0)",
-      [id, nome, tipo, descricao, imagem]
+      [id, nome, tipo, descricao, imagem || null]
     );
 
     return res.status(201).json({ id, nome, tipo, descricao, imagem, notaMedia: 5.00, avaliacoesContagem: 0 });
@@ -98,7 +116,7 @@ export async function updateRestaurant(req: AuthenticatedRequest, res: Response)
 
     await pool.execute(
       "UPDATE restaurants SET nome = ?, tipo = ?, descricao = ?, imagem = ? WHERE id = ?",
-      [nome, tipo, descricao, imagem, id]
+      [nome, tipo, descricao, imagem || null, id]
     );
 
     return res.json({ message: "Restaurante atualizado com sucesso!" });
@@ -139,7 +157,7 @@ export async function addLodging(req: AuthenticatedRequest, res: Response) {
 
     await pool.execute(
       "INSERT INTO lodgings (id, nome, tipo, descricao, imagem, nota_media, avaliacoes_contagem) VALUES (?, ?, ?, ?, ?, 5.00, 0)",
-      [id, nome, tipo, descricao, imagem]
+      [id, nome, tipo, descricao, imagem || null]
     );
 
     return res.status(201).json({ id, nome, tipo, descricao, imagem, notaMedia: 5.00, avaliacoesContagem: 0 });
@@ -156,7 +174,7 @@ export async function updateLodging(req: AuthenticatedRequest, res: Response) {
 
     await pool.execute(
       "UPDATE lodgings SET nome = ?, tipo = ?, descricao = ?, imagem = ? WHERE id = ?",
-      [nome, tipo, descricao, imagem, id]
+      [nome, tipo, descricao, imagem || null, id]
     );
 
     return res.json({ message: "Hospedagem atualizada com sucesso!" });
