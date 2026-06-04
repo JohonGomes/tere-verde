@@ -40,7 +40,7 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
       <SectionDivider fromColor="#FFFFFF" toColor="#FFFFFF" height="h-0" />
       <IntroducaoSection />
       <SectionDivider fromColor="#FFFFFF" toColor="#E8EBE9" />
-      <ParquesSection />
+      <ParquesSection onNavigate={onNavigate} />
       <SectionDivider fromColor="#E8EBE9" toColor="#E8F2EF" />
       <EventosTempoSection />
       <SectionDivider fromColor="#E8F2EF" toColor="#F5F1ED" />

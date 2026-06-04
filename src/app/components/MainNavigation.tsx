@@ -1,4 +1,4 @@
-import { Trees, MapPin, Calendar, Mountain, Home, Compass, Ticket, ShieldCheck, User, MessageCircle, LogIn, Award } from "lucide-react";
+import { Trees, MapPin, Calendar, Mountain, Compass, Ticket, MessageCircle } from "lucide-react";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -7,7 +7,6 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "./ui/navigation-menu";
-import { useAuth } from "../contexts/AuthContext";
 import type { PageType } from "../App";
 
 interface MainNavigationProps {
@@ -18,8 +17,6 @@ interface MainNavigationProps {
 }
 
 export function MainNavigation({ onNavigate, onOpenAuth, parks = [], onSelectPark }: MainNavigationProps) {
-  const { user } = useAuth();
-  
   const customParks = parks.filter(
     (p: any) => p.id !== "parque-nacional" && p.id !== "parque-tres-picos" && p.id !== "parque-municipal"
   );
@@ -27,17 +24,6 @@ export function MainNavigation({ onNavigate, onOpenAuth, parks = [], onSelectPar
   return (
     <NavigationMenu className="hidden lg:flex">
       <NavigationMenuList className="gap-1">
-        <NavigationMenuItem>
-          <NavigationMenuLink
-            asChild
-            className="group inline-flex h-10 w-10 items-center justify-center rounded-md bg-background text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer"
-          >
-            <button onClick={() => onNavigate("home")}>
-              <Home className="h-5 w-5" />
-              <span className="sr-only">Home</span>
-            </button>
-          </NavigationMenuLink>
-        </NavigationMenuItem>
 
         <NavigationMenuItem>
           <NavigationMenuTrigger className="text-base font-medium gap-1">
@@ -260,63 +246,26 @@ export function MainNavigation({ onNavigate, onOpenAuth, parks = [], onSelectPar
         <NavigationMenuItem>
           <NavigationMenuLink
             asChild
-            className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-3 py-2 text-base font-medium transition-colors hover:bg-accent hover:text-accent-foreground gap-1 cursor-pointer"
+            className="group inline-flex h-9 w-max items-center justify-center rounded-md text-base font-medium transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer bg-transparent !flex-row !px-4 !py-2 gap-1 !text-base !font-medium"
           >
-            <a onClick={() => onNavigate("fale-conosco")}>
+            <button onClick={() => onNavigate("fale-conosco")}>
               <MessageCircle className="h-4 w-4" />
               Contato
-            </a>
+            </button>
           </NavigationMenuLink>
         </NavigationMenuItem>
 
         {/* Ingressos Link */}
-        <NavigationMenuItem>
+        <NavigationMenuItem className="ml-4">
           <NavigationMenuLink
             asChild
-            className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-3 py-2 text-base font-medium transition-colors hover:bg-accent hover:text-accent-foreground gap-1 cursor-pointer"
+            className="group inline-flex h-9 w-max items-center justify-center rounded-md text-base font-medium transition-colors hover:bg-accent hover:text-accent-foreground cursor-pointer bg-transparent !flex-row !px-4 !py-2 gap-1 !text-base !font-medium"
           >
-            <a onClick={() => onNavigate("home")}>
+            <button onClick={() => onNavigate("home")}>
               <Ticket className="h-4 w-4" />
               Ingressos
-            </a>
+            </button>
           </NavigationMenuLink>
-        </NavigationMenuItem>
-
-        {/* Administrador (somente visível para admin ou redireciona para login) */}
-        {user?.role === "admin" && (
-          <NavigationMenuItem>
-            <button
-              onClick={() => onNavigate("admin-dashboard")}
-              className="group inline-flex h-10 w-10 items-center justify-center rounded-md bg-background text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
-              title="Painel do Administrador"
-            >
-              <ShieldCheck className="h-5 w-5 text-primary" />
-              <span className="sr-only">Área do Administrador</span>
-            </button>
-          </NavigationMenuItem>
-        )}
-
-        {/* Visitante / Login */}
-        <NavigationMenuItem>
-          {user ? (
-            <button
-              onClick={() => onNavigate("user-profile")}
-              className="group inline-flex h-10 w-10 items-center justify-center rounded-md bg-background text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
-              title="Meu Perfil"
-            >
-              <User className="h-5 w-5 text-primary" />
-              <span className="sr-only">Área do Visitante</span>
-            </button>
-          ) : (
-            <button
-              onClick={() => onOpenAuth("login")}
-              className="group inline-flex h-10 w-10 items-center justify-center rounded-md bg-background text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
-              title="Fazer Login"
-            >
-              <LogIn className="h-5 w-5" />
-              <span className="sr-only">Fazer Login</span>
-            </button>
-          )}
         </NavigationMenuItem>
       </NavigationMenuList>
     </NavigationMenu>

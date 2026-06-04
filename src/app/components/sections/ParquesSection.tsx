@@ -6,6 +6,9 @@ import { ImageWithFallback } from "../figma/ImageWithFallback";
 import { AnimatedText, ScaleIn } from "../AnimatedText";
 import { ApiService } from "../../services/api";
 import { Park } from "../../types";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../ui/dialog";
+import { Button } from "../ui/button";
+import { TicketPurchaseModal } from "../TicketPurchaseModal";
 
 const STATIC_PARQUES = [
   {
@@ -40,8 +43,15 @@ const STATIC_PARQUES = [
   }
 ];
 
-export function ParquesSection() {
+interface ParquesSectionProps {
+  onNavigate?: (page: any) => void;
+}
+
+export function ParquesSection({ onNavigate }: ParquesSectionProps) {
   const [parques, setParques] = useState<any[]>(STATIC_PARQUES);
+  const [selectedCustomPark, setSelectedCustomPark] = useState<any>(null);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [buyModalOpen, setBuyModalOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const scroll = (direction: "left" | "right") => {
@@ -53,6 +63,20 @@ export function ParquesSection() {
         left: direction === "left" ? scrollLeft - scrollAmount : scrollLeft + scrollAmount,
         behavior: "smooth"
       });
+    }
+  };
+
+  const handleSelectPark = (parkId: string) => {
+    if (parkId === "parque-nacional" || parkId === "parque-tres-picos" || parkId === "parque-municipal") {
+      if (onNavigate) {
+        onNavigate(parkId);
+      }
+    } else {
+      const p = parques.find(item => item.id === parkId);
+      if (p) {
+        setSelectedCustomPark(p);
+        setDetailModalOpen(true);
+      }
     }
   };
 
@@ -154,7 +178,10 @@ export function ParquesSection() {
                 delay={index * 0.05}
                 className={showScroll ? "w-[285px] md:w-[310px] shrink-0 snap-start" : ""}
               >
-                <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 group flex flex-col h-[380px] justify-between border border-border/50 bg-card">
+                <Card 
+                  onClick={() => handleSelectPark(parque.id)}
+                  className="overflow-hidden hover:shadow-lg transition-all duration-300 group flex flex-col h-[415px] justify-between border border-border/50 bg-card cursor-pointer"
+                >
                   <div>
                     <div className="h-40 overflow-hidden relative">
                       <ImageWithFallback
@@ -174,7 +201,7 @@ export function ParquesSection() {
                       <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3">{parque.descricao}</p>
                     </CardContent>
                   </div>
-                  <CardContent className="p-4 pt-0">
+                  <CardContent className="p-4 pt-0 space-y-3">
                     <div className="flex items-center justify-between text-xs pt-3 border-t border-border/60">
                       <div className="flex items-center gap-1">
                         <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
@@ -185,6 +212,12 @@ export function ParquesSection() {
                         <span className="font-medium">{parque.trilhas} {parque.trilhas === 1 ? "trilha" : "trilhas"}</span>
                       </div>
                     </div>
+                    <Button 
+                      variant="outline" 
+                      className="w-full text-xs font-semibold h-8 border-primary/30 group-hover:bg-primary group-hover:text-white transition-all duration-300 pointer-events-none"
+                    >
+                      Explorar Parque
+                    </Button>
                   </CardContent>
                 </Card>
               </ScaleIn>
@@ -210,6 +243,75 @@ export function ParquesSection() {
           </div>
         )}
       </div>
+
+      {/* Modal de Detalhes para Parques Dinâmicos */}
+      {selectedCustomPark && (
+        <Dialog open={detailModalOpen} onOpenChange={setDetailModalOpen}>
+          <DialogContent className="sm:max-w-[480px] rounded-xl p-6">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold text-primary">
+                {selectedCustomPark.nomeCompleto || selectedCustomPark.nome}
+              </DialogTitle>
+              <DialogDescription>
+                Informações detalhadas sobre o parque ecológico.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 my-4">
+              {selectedCustomPark.imagem && (
+                <div className="h-48 rounded-lg overflow-hidden">
+                  <img src={selectedCustomPark.imagem} alt={selectedCustomPark.nome} className="w-full h-full object-cover" />
+                </div>
+              )}
+
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {selectedCustomPark.descricao}
+              </p>
+
+              <div className="grid grid-cols-2 gap-3 pt-3 border-t border-border">
+                <div>
+                  <span className="text-xs text-muted-foreground block">Altitude Máxima</span>
+                  <span className="text-sm font-semibold">{selectedCustomPark.altitude || "N/A"}</span>
+                </div>
+                <div>
+                  <span className="text-xs text-muted-foreground block">Área Protegida</span>
+                  <span className="text-sm font-semibold">{selectedCustomPark.area || "N/A"}</span>
+                </div>
+                <div>
+                  <span className="text-xs text-muted-foreground block">Funcionamento</span>
+                  <span className="text-sm font-semibold">{selectedCustomPark.funcionamento || "N/A"}</span>
+                </div>
+                <div>
+                  <span className="text-xs text-muted-foreground block">Ingresso Base</span>
+                  <span className="text-sm font-semibold text-primary">R$ {Number(selectedCustomPark.ingressoBase || selectedCustomPark.ingresso_base || 0).toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4 border-t border-border">
+              <Button variant="outline" onClick={() => setDetailModalOpen(false)}>
+                Fechar
+              </Button>
+              <Button onClick={() => {
+                setDetailModalOpen(false);
+                setBuyModalOpen(true);
+              }}>
+                Comprar Ingresso
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Modal de compra para o parque selecionado */}
+      {selectedCustomPark && (
+        <TicketPurchaseModal
+          open={buyModalOpen}
+          onOpenChange={setBuyModalOpen}
+          defaultItemId={selectedCustomPark.id}
+          defaultItemType="park"
+        />
+      )}
     </section>
   );
 }
