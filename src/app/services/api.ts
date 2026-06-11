@@ -324,16 +324,26 @@ export const ApiService = {
   // ==========================================
   // 🎟️ INGRESSOS & RECEPÇÃO REAL (RN03)
   // ==========================================
-  buyTicket: async (userId: string, userName: string, userCpf: string, tipoItem: TicketType, itemId: string, itemName: string, date: string, quantity: number, pricePerItem: number): Promise<Ticket> => {
+  buyTicket: async (params: {
+    userId: string;
+    userName: string;
+    userCpf: string;
+    itemId: string;
+    itemName: string;
+    itemType: TicketType;
+    quantidade: number;
+    dataReserva: string;
+    valorTotal: number;
+  }): Promise<Ticket> => {
     const res = await fetch(`${BASE_URL}/parks/tickets/buy`, {
       method: "POST",
       headers: getHeaders(),
       body: JSON.stringify({
-        targetId: itemId,
-        targetType: tipoItem === "park" ? "park" : "event",
-        date,
-        quantity,
-        totalPrice: pricePerItem * quantity
+        targetId: params.itemId,
+        targetType: params.itemType === "park" ? "park" : "event",
+        date: params.dataReserva,
+        quantity: params.quantidade,
+        totalPrice: params.valorTotal
       })
     });
     if (!res.ok) {
@@ -346,11 +356,11 @@ export const ApiService = {
     return {
       id: t.id,
       userId: t.userId,
-      userName,
-      userCpf,
-      tipoItem,
+      userName: params.userName,
+      userCpf: params.userCpf,
+      tipoItem: params.itemType,
       itemId: t.targetId,
-      itemName,
+      itemName: params.itemName,
       dataReserva: t.date,
       dataCompra: t.createdAt || new Date().toISOString(),
       quantidade: t.quantity,
