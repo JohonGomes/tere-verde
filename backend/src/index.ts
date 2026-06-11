@@ -48,8 +48,33 @@ async function testDbConnection() {
         );
         console.log("🌱 Usuário de teste 'admin@tereverde.com' semeado com sucesso (Senha: SenhaSegura123)!");
       }
+
+      // Seed dos parques padrão se não existirem
+      const [parkRows]: any = await connection.query("SELECT id FROM parks");
+      const existingIds = parkRows.map((p: any) => p.id);
+      if (!existingIds.includes("parque-nacional")) {
+        await connection.query(
+          "INSERT INTO parks (id, nome, descricao, altitude, area, imagem, limite_capacidade_diaria, funcionamento, ingresso_base) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+          ["parque-nacional", "Parque Nacional da Serra dos Órgãos", "O park abriga as trilhas mais icônicas da região, incluindo a Pedra do Sino e a Travessia Petrópolis-Teresópolis", "2.263m", "20.024 hectares", "https://images.unsplash.com/photo-1682347810591-be423d4ad8ba?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600", 300, "Terça a Domingo, 8h às 17h", 35.00]
+        );
+        console.log("🌱 Parque Nacional semeado com sucesso!");
+      }
+      if (!existingIds.includes("parque-municipal")) {
+        await connection.query(
+          "INSERT INTO parks (id, nome, descricao, altitude, area, imagem, limite_capacidade_diaria, funcionamento, ingresso_base) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+          ["parque-municipal", "Parque Natural Municipal Montanhas", "Área de preservação municipal com trilhas leves e cachoeiras de fácil acesso para toda a família", "1.200m", "3.568 hectares", "https://images.unsplash.com/photo-1604990830224-5aeb2863fbbe?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600", 150, "Quarta a Segunda, 9h às 16h", 0.00]
+        );
+        console.log("🌱 Parque Municipal semeado com sucesso!");
+      }
+      if (!existingIds.includes("parque-tres-picos")) {
+        await connection.query(
+          "INSERT INTO parks (id, nome, descricao, altitude, area, imagem, limite_capacidade_diaria, funcionamento, ingresso_base) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+          ["parque-tres-picos", "Parque Estadual dos Três Picos", "Maior unidade de conservação do estado do Rio de Janeiro, com biodiversidade excepcional da Mata Atlântica", "2.366m", "46.350 hectares", "https://images.unsplash.com/photo-1682347813709-e0e59e834b04?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600", 250, "Todos os dias, 8h às 17h", 0.00]
+        );
+        console.log("🌱 Parque Estadual dos Três Picos semeado com sucesso!");
+      }
     } catch (seedErr: any) {
-      console.warn("⚠️ Aviso: Falha ao semear usuários de teste automáticos:", seedErr.message);
+      console.warn("⚠️ Aviso: Falha ao semear dados de teste automáticos:", seedErr.message);
     }
 
     connection.release();
