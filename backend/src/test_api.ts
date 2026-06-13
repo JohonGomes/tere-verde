@@ -63,6 +63,11 @@ async function run() {
         limite_capacidade_diaria INT NOT NULL DEFAULT 100,
         funcionamento VARCHAR(100),
         ingresso_base DECIMAL(10, 2) DEFAULT 0.00,
+        video TEXT,
+        principais_trilhas TEXT,
+        cachoeiras TEXT,
+        galeria_fotos TEXT,
+        como_chegar TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);

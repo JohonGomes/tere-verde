@@ -3,9 +3,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import { Toaster } from "./components/ui/sonner";
 import { LandingPage } from "./components/LandingPage";
-import { ParqueNacionalPage } from "./components/pages/ParqueNacionalPage";
-import { ParqueTresPicosPage } from "./components/pages/ParqueTresPicosPage";
-import { ParqueMunicipalPage } from "./components/pages/ParqueMunicipalPage";
+import { ParqueDetalhePage } from "./components/pages/ParqueDetalhePage";
 import { AdminDashboardPage } from "./components/pages/AdminDashboardPage";
 import { ReceptionPage } from "./components/pages/ReceptionPage";
 import { UserProfilePage } from "./components/pages/UserProfilePage";
@@ -21,6 +19,7 @@ export type PageType =
   | "parque-nacional" 
   | "parque-tres-picos" 
   | "parque-municipal"
+  | "parque-detalhe"
   | "admin-dashboard"
   | "reception"
   | "user-profile"
@@ -33,39 +32,49 @@ export type PageType =
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<PageType>("home");
+  const [selectedParkId, setSelectedParkId] = useState<string | null>(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [currentPage]);
 
+  const handleNavigate = (page: PageType, parkId?: string) => {
+    if (parkId) {
+      setSelectedParkId(parkId);
+    }
+    setCurrentPage(page);
+  };
+
   const renderPage = () => {
     switch (currentPage) {
       case "parque-nacional":
-        return <ParqueNacionalPage onNavigate={setCurrentPage} />;
+        return <ParqueDetalhePage parkId="parque-nacional" onNavigate={handleNavigate} />;
       case "parque-tres-picos":
-        return <ParqueTresPicosPage onNavigate={setCurrentPage} />;
+        return <ParqueDetalhePage parkId="parque-tres-picos" onNavigate={handleNavigate} />;
       case "parque-municipal":
-        return <ParqueMunicipalPage onNavigate={setCurrentPage} />;
+        return <ParqueDetalhePage parkId="parque-municipal" onNavigate={handleNavigate} />;
+      case "parque-detalhe":
+        return <ParqueDetalhePage parkId={selectedParkId || ""} onNavigate={handleNavigate} />;
       case "admin-dashboard":
-        return <AdminDashboardPage onNavigate={setCurrentPage} />;
+        return <AdminDashboardPage onNavigate={handleNavigate} />;
       case "reception":
-        return <ReceptionPage onNavigate={setCurrentPage} />;
+        return <ReceptionPage onNavigate={handleNavigate} />;
       case "user-profile":
-        return <UserProfilePage onNavigate={setCurrentPage} />;
+        return <UserProfilePage onNavigate={handleNavigate} />;
       case "trilhas":
-        return <TrilhasPage onNavigate={setCurrentPage} />;
+        return <TrilhasPage onNavigate={handleNavigate} />;
       case "eventos":
-        return <EventosPage onNavigate={setCurrentPage} />;
+        return <EventosPage onNavigate={handleNavigate} />;
       case "restaurantes":
-        return <RestaurantesPage onNavigate={setCurrentPage} />;
+        return <RestaurantesPage onNavigate={handleNavigate} />;
       case "hospedagens":
-        return <HospedagensPage onNavigate={setCurrentPage} />;
+        return <HospedagensPage onNavigate={handleNavigate} />;
       case "sobre":
-        return <SobreCidadePage onNavigate={setCurrentPage} />;
+        return <SobreCidadePage onNavigate={handleNavigate} />;
       case "fale-conosco":
-        return <FaleConoscoPage onNavigate={setCurrentPage} />;
+        return <FaleConoscoPage onNavigate={handleNavigate} />;
       default:
-        return <LandingPage onNavigate={setCurrentPage} />;
+        return <LandingPage onNavigate={handleNavigate} />;
     }
   };
 

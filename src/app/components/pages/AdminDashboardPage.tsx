@@ -149,7 +149,20 @@ export function AdminDashboardPage({ onNavigate }: AdminDashboardPageProps) {
     
     // Inicializar campos padrão
     if (type === "park") {
-      setFormFields({ nome: "", descricao: "", altitude: "", area: "", limiteCapacidadeDiaria: 200, funcionamento: "", ingressoBase: 0 });
+      setFormFields({
+        nome: "",
+        descricao: "",
+        altitude: "",
+        area: "",
+        limiteCapacidadeDiaria: 200,
+        funcionamento: "",
+        ingressoBase: 0,
+        video: "",
+        comoChegar: { carro: "", onibus: "" },
+        galeriaFotos: [],
+        cachoeiras: [],
+        principaisTrilhas: []
+      });
     } else if (type === "trail") {
       setFormFields({ parkId: parks[0]?.id || "", nome: "", dificuldade: "Fácil", duracao: "", distancia: "", descricao: "", imagem: "" });
     } else if (type === "event") {
@@ -165,7 +178,17 @@ export function AdminDashboardPage({ onNavigate }: AdminDashboardPageProps) {
   const openEditModal = (type: "park" | "trail" | "event" | "restaurant" | "lodging", entity: any) => {
     setCrudType(type);
     setSelectedId(entity.id);
-    setFormFields({ ...entity });
+    if (type === "park") {
+      setFormFields({
+        ...entity,
+        comoChegar: entity.comoChegar || { carro: "", onibus: "" },
+        galeriaFotos: entity.galeriaFotos || [],
+        cachoeiras: entity.cachoeiras || [],
+        principaisTrilhas: entity.principaisTrilhas || []
+      });
+    } else {
+      setFormFields({ ...entity });
+    }
     setModalOpen(true);
   };
 
@@ -590,7 +613,7 @@ export function AdminDashboardPage({ onNavigate }: AdminDashboardPageProps) {
 
       {/* --- FORMULARIO DE CADASTRO/EDIÇÃO DINÂMICO (CRUDs) --- */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="sm:max-w-[480px] p-6 max-h-[90vh] overflow-y-auto">
+        <DialogContent className={`p-6 max-h-[90vh] overflow-y-auto transition-all duration-300 ${crudType === "park" ? "sm:max-w-[760px]" : "sm:max-w-[480px]"}`}>
           <DialogHeader>
             <DialogTitle className="capitalize font-bold text-primary text-xl">
               {selectedId ? "Editar" : "Cadastrar Novo"} {crudType === "park" ? "Parque" : crudType === "trail" ? "Trilha" : crudType === "event" ? "Evento" : crudType === "restaurant" ? "Restaurante" : "Estabelecimento de Hospedagem"}
@@ -601,40 +624,381 @@ export function AdminDashboardPage({ onNavigate }: AdminDashboardPageProps) {
           <form onSubmit={handleSaveSubmit} className="space-y-4">
             {/* Parque CRUD Fields */}
             {crudType === "park" && (
-              <>
-                <div className="space-y-1">
-                  <Label htmlFor="p-name">Nome do Parque</Label>
-                  <Input id="p-name" value={formFields.nome || ""} onChange={(e) => setFormFields({ ...formFields, nome: e.target.value })} required />
-                </div>
-                <div className="space-y-1">
-                  <Label htmlFor="p-desc">Descrição Completa</Label>
-                  <Textarea id="p-desc" value={formFields.descricao || ""} onChange={(e) => setFormFields({ ...formFields, descricao: e.target.value })} rows={3} required />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
+              <Tabs defaultValue="geral" className="w-full">
+                <TabsList className="grid grid-cols-5 gap-1 mb-4">
+                  <TabsTrigger value="geral">Geral</TabsTrigger>
+                  <TabsTrigger value="como-chegar">Como Chegar</TabsTrigger>
+                  <TabsTrigger value="galeria">Galeria</TabsTrigger>
+                  <TabsTrigger value="cachoeiras">Cachoeiras</TabsTrigger>
+                  <TabsTrigger value="trilhas">Trilhas</TabsTrigger>
+                </TabsList>
+
+                {/* ABA GERAL */}
+                <TabsContent value="geral" className="space-y-4">
                   <div className="space-y-1">
-                    <Label htmlFor="p-alt">Altitude Máxima</Label>
-                    <Input id="p-alt" value={formFields.altitude || ""} onChange={(e) => setFormFields({ ...formFields, altitude: e.target.value })} placeholder="Ex: 2.260m" required />
+                    <Label htmlFor="p-name">Nome do Parque</Label>
+                    <Input id="p-name" value={formFields.nome || ""} onChange={(e) => setFormFields({ ...formFields, nome: e.target.value })} required />
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor="p-area">Área Protegida</Label>
-                    <Input id="p-area" value={formFields.area || ""} onChange={(e) => setFormFields({ ...formFields, area: e.target.value })} placeholder="Ex: 20.000 ha" required />
+                    <Label htmlFor="p-desc">Descrição Completa</Label>
+                    <Textarea id="p-desc" value={formFields.descricao || ""} onChange={(e) => setFormFields({ ...formFields, descricao: e.target.value })} rows={4} required />
                   </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label htmlFor="p-alt">Altitude Máxima</Label>
+                      <Input id="p-alt" value={formFields.altitude || ""} onChange={(e) => setFormFields({ ...formFields, altitude: e.target.value })} placeholder="Ex: 2.260m" required />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="p-area">Área Protegida</Label>
+                      <Input id="p-area" value={formFields.area || ""} onChange={(e) => setFormFields({ ...formFields, area: e.target.value })} placeholder="Ex: 20.000 ha" required />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label htmlFor="p-limit">Capacidade Diária</Label>
+                      <Input id="p-limit" type="number" value={formFields.limiteCapacidadeDiaria || 200} onChange={(e) => setFormFields({ ...formFields, limiteCapacidadeDiaria: Number(e.target.value) })} required />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="p-price">Ingresso Base (R$)</Label>
+                      <Input id="p-price" type="number" step="0.01" value={formFields.ingressoBase || 0} onChange={(e) => setFormFields({ ...formFields, ingressoBase: Number(e.target.value) })} required />
+                    </div>
+                  </div>
                   <div className="space-y-1">
-                    <Label htmlFor="p-limit">Capacidade Diária</Label>
-                    <Input id="p-limit" type="number" value={formFields.limiteCapacidadeDiaria || 200} onChange={(e) => setFormFields({ ...formFields, limiteCapacidadeDiaria: Number(e.target.value) })} required />
+                    <Label htmlFor="p-func">Funcionamento</Label>
+                    <Input id="p-func" value={formFields.funcionamento || ""} onChange={(e) => setFormFields({ ...formFields, funcionamento: e.target.value })} placeholder="Ex: Terça a Domingo, das 8h às 17h" required />
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor="p-price">Ingresso Base (R$)</Label>
-                    <Input id="p-price" type="number" step="0.01" value={formFields.ingressoBase || 0} onChange={(e) => setFormFields({ ...formFields, ingressoBase: Number(e.target.value) })} required />
+                    <Label htmlFor="p-img">URL da Imagem de Capa</Label>
+                    <Input id="p-img" value={formFields.imagem || ""} onChange={(e) => setFormFields({ ...formFields, imagem: e.target.value })} placeholder="https://images.unsplash.com/..." required />
                   </div>
-                </div>
-                <div className="space-y-1">
-                  <Label htmlFor="p-func">Funcionamento</Label>
-                  <Input id="p-func" value={formFields.funcionamento || ""} onChange={(e) => setFormFields({ ...formFields, funcionamento: e.target.value })} placeholder="Ex: Terça a Domingo, das 8h às 17h" required />
-                </div>
-              </>
+                  <div className="space-y-1">
+                    <Label htmlFor="p-video">URL do Vídeo (Youtube)</Label>
+                    <Input id="p-video" value={formFields.video || ""} onChange={(e) => setFormFields({ ...formFields, video: e.target.value })} placeholder="https://www.youtube.com/watch?v=..." />
+                  </div>
+                </TabsContent>
+
+                {/* ABA COMO CHEGAR */}
+                <TabsContent value="como-chegar" className="space-y-4">
+                  <div className="space-y-1">
+                    <Label htmlFor="p-chegar-carro">Como Chegar (De Carro)</Label>
+                    <Textarea
+                      id="p-chegar-carro"
+                      value={formFields.comoChegar?.carro || ""}
+                      onChange={(e) => {
+                        const cc = { ...formFields.comoChegar, carro: e.target.value };
+                        setFormFields({ ...formFields, comoChegar: cc });
+                      }}
+                      rows={4}
+                      placeholder="Instruções de acesso de carro..."
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="p-chegar-onibus">Como Chegar (De Ônibus)</Label>
+                    <Textarea
+                      id="p-chegar-onibus"
+                      value={formFields.comoChegar?.onibus || ""}
+                      onChange={(e) => {
+                        const cc = { ...formFields.comoChegar, onibus: e.target.value };
+                        setFormFields({ ...formFields, comoChegar: cc });
+                      }}
+                      rows={4}
+                      placeholder="Instruções de acesso de ônibus..."
+                    />
+                  </div>
+                </TabsContent>
+
+                {/* ABA GALERIA */}
+                <TabsContent value="galeria" className="space-y-4">
+                  <div className="space-y-1">
+                    <Label htmlFor="p-galeria">Galeria de Fotos (uma URL por linha)</Label>
+                    <Textarea
+                      id="p-galeria"
+                      value={Array.isArray(formFields.galeriaFotos) ? formFields.galeriaFotos.join("\n") : ""}
+                      onChange={(e) => {
+                        const urls = e.target.value.split("\n").filter(line => line.trim() !== "");
+                        setFormFields({ ...formFields, galeriaFotos: urls });
+                      }}
+                      rows={10}
+                      placeholder="https://images.unsplash.com/photo-1...\nhttps://images.unsplash.com/photo-2..."
+                    />
+                  </div>
+                </TabsContent>
+
+                {/* ABA CACHOEIRAS */}
+                <TabsContent value="cachoeiras" className="space-y-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <Label>Lista de Cachoeiras</Label>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        const list = Array.isArray(formFields.cachoeiras) ? [...formFields.cachoeiras] : [];
+                        list.push({ nome: "Nova Cachoeira", altura: "10m", descricao: "Descrição curta" });
+                        setFormFields({ ...formFields, cachoeiras: list });
+                      }}
+                    >
+                      + Adicionar Cachoeira
+                    </Button>
+                  </div>
+                  <div className="space-y-4 max-h-[350px] overflow-y-auto pr-1">
+                    {(Array.isArray(formFields.cachoeiras) ? formFields.cachoeiras : []).map((cachoeira, idx) => (
+                      <Card key={idx} className="p-3 relative border border-border">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute top-2 right-2 text-destructive h-8 w-8 p-0"
+                          onClick={() => {
+                            const list = [...formFields.cachoeiras];
+                            list.splice(idx, 1);
+                            setFormFields({ ...formFields, cachoeiras: list });
+                          }}
+                        >
+                          ✕
+                        </Button>
+                        <div className="grid grid-cols-3 gap-2 mt-2">
+                          <div className="col-span-2 space-y-1">
+                            <Label className="text-xs">Nome</Label>
+                            <Input
+                              value={cachoeira.nome || ""}
+                              onChange={(e) => {
+                                const list = [...formFields.cachoeiras];
+                                list[idx] = { ...cachoeira, nome: e.target.value };
+                                setFormFields({ ...formFields, cachoeiras: list });
+                              }}
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-xs">Altura</Label>
+                            <Input
+                              value={cachoeira.altura || ""}
+                              onChange={(e) => {
+                                const list = [...formFields.cachoeiras];
+                                list[idx] = { ...cachoeira, altura: e.target.value };
+                                setFormFields({ ...formFields, cachoeiras: list });
+                              }}
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-1 mt-2">
+                          <Label className="text-xs">Descrição</Label>
+                          <Input
+                            value={cachoeira.descricao || ""}
+                            onChange={(e) => {
+                              const list = [...formFields.cachoeiras];
+                              list[idx] = { ...cachoeira, descricao: e.target.value };
+                              setFormFields({ ...formFields, cachoeiras: list });
+                            }}
+                          />
+                        </div>
+                      </Card>
+                    ))}
+                    {(Array.isArray(formFields.cachoeiras) ? formFields.cachoeiras : []).length === 0 && (
+                      <p className="text-sm text-muted-foreground text-center py-4">Nenhuma cachoeira adicionada.</p>
+                    )}
+                  </div>
+                </TabsContent>
+
+                {/* ABA TRILHAS */}
+                <TabsContent value="trilhas" className="space-y-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <Label>Trilhas Principais</Label>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        const list = Array.isArray(formFields.principaisTrilhas) ? [...formFields.principaisTrilhas] : [];
+                        list.push({
+                          nome: "Nova Trilha",
+                          dificuldade: "Fácil",
+                          duracao: "2 horas",
+                          distancia: "3 km",
+                          descricao: "Descrição curta da trilha",
+                          imagem: "",
+                          detalhes: {
+                            descricaoCompleta: "Descrição completa da nova trilha...",
+                            dificuldadeDetalhes: "Detalhes sobre a dificuldade...",
+                            recomendacoes: ["Recomendação 1"],
+                            fotos: []
+                          }
+                        });
+                        setFormFields({ ...formFields, principaisTrilhas: list });
+                      }}
+                    >
+                      + Adicionar Trilha
+                    </Button>
+                  </div>
+                  <div className="space-y-4 max-h-[350px] overflow-y-auto pr-1">
+                    {(Array.isArray(formFields.principaisTrilhas) ? formFields.principaisTrilhas : []).map((trilha, idx) => (
+                      <Card key={idx} className="p-3 relative border border-border space-y-2">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute top-2 right-2 text-destructive h-8 w-8 p-0"
+                          onClick={() => {
+                            const list = [...formFields.principaisTrilhas];
+                            list.splice(idx, 1);
+                            setFormFields({ ...formFields, principaisTrilhas: list });
+                          }}
+                        >
+                          ✕
+                        </Button>
+                        <div className="grid grid-cols-2 gap-2 mt-2">
+                          <div className="space-y-1">
+                            <Label className="text-xs font-semibold">Nome</Label>
+                            <Input
+                              value={trilha.nome || ""}
+                              onChange={(e) => {
+                                const list = [...formFields.principaisTrilhas];
+                                list[idx] = { ...trilha, nome: e.target.value };
+                                setFormFields({ ...formFields, principaisTrilhas: list });
+                              }}
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-xs font-semibold">Dificuldade</Label>
+                            <Select
+                              value={trilha.dificuldade || "Fácil"}
+                              onValueChange={(val) => {
+                                const list = [...formFields.principaisTrilhas];
+                                list[idx] = { ...trilha, dificuldade: val };
+                                setFormFields({ ...formFields, principaisTrilhas: list });
+                              }}
+                            >
+                              <SelectTrigger className="h-9">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Fácil">Fácil</SelectItem>
+                                <SelectItem value="Moderado">Moderado</SelectItem>
+                                <SelectItem value="Difícil">Difícil</SelectItem>
+                                <SelectItem value="Muito Difícil">Muito Difícil</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="space-y-1">
+                            <Label className="text-xs font-semibold">Duração</Label>
+                            <Input
+                              value={trilha.duracao || ""}
+                              onChange={(e) => {
+                                const list = [...formFields.principaisTrilhas];
+                                list[idx] = { ...trilha, duracao: e.target.value };
+                                setFormFields({ ...formFields, principaisTrilhas: list });
+                              }}
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-xs font-semibold">Distância</Label>
+                            <Input
+                              value={trilha.distancia || ""}
+                              onChange={(e) => {
+                                const list = [...formFields.principaisTrilhas];
+                                list[idx] = { ...trilha, distancia: e.target.value };
+                                setFormFields({ ...formFields, principaisTrilhas: list });
+                              }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-1">
+                          <Label className="text-xs font-semibold">Descrição Curta</Label>
+                          <Input
+                            value={trilha.descricao || ""}
+                            onChange={(e) => {
+                              const list = [...formFields.principaisTrilhas];
+                              list[idx] = { ...trilha, descricao: e.target.value };
+                              setFormFields({ ...formFields, principaisTrilhas: list });
+                            }}
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <Label className="text-xs font-semibold">Imagem de Capa (URL)</Label>
+                          <Input
+                            value={trilha.imagem || ""}
+                            onChange={(e) => {
+                              const list = [...formFields.principaisTrilhas];
+                              list[idx] = { ...trilha, imagem: e.target.value };
+                              setFormFields({ ...formFields, principaisTrilhas: list });
+                            }}
+                          />
+                        </div>
+
+                        <div className="border-t border-dashed pt-2 mt-2 space-y-2">
+                          <Label className="text-xs font-bold text-primary">Detalhes da Trilha (Saiba Mais)</Label>
+                          
+                          <div className="space-y-1">
+                            <Label className="text-[10px] text-muted-foreground">Descrição Completa</Label>
+                            <Textarea
+                              value={trilha.detalhes?.descricaoCompleta || ""}
+                              rows={2}
+                              onChange={(e) => {
+                                const list = [...formFields.principaisTrilhas];
+                                const det = { ...trilha.detalhes, descricaoCompleta: e.target.value };
+                                list[idx] = { ...trilha, detalhes: det };
+                                setFormFields({ ...formFields, principaisTrilhas: list });
+                              }}
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <Label className="text-[10px] text-muted-foreground">Detalhes da Dificuldade</Label>
+                            <Textarea
+                              value={trilha.detalhes?.dificuldadeDetalhes || ""}
+                              rows={2}
+                              onChange={(e) => {
+                                const list = [...formFields.principaisTrilhas];
+                                const det = { ...trilha.detalhes, dificuldadeDetalhes: e.target.value };
+                                list[idx] = { ...trilha, detalhes: det };
+                                setFormFields({ ...formFields, principaisTrilhas: list });
+                              }}
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <Label className="text-[10px] text-muted-foreground">Recomendações (uma por linha)</Label>
+                            <Textarea
+                              value={Array.isArray(trilha.detalhes?.recomendacoes) ? trilha.detalhes.recomendacoes.join("\n") : ""}
+                              rows={3}
+                              onChange={(e) => {
+                                const list = [...formFields.principaisTrilhas];
+                                const recs = e.target.value.split("\n").filter(l => l.trim() !== "");
+                                const det = { ...trilha.detalhes, recomendacoes: recs };
+                                list[idx] = { ...trilha, detalhes: det };
+                                setFormFields({ ...formFields, principaisTrilhas: list });
+                              }}
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <Label className="text-[10px] text-muted-foreground">Galeria de Fotos da Trilha (uma URL por linha)</Label>
+                            <Textarea
+                              value={Array.isArray(trilha.detalhes?.fotos) ? trilha.detalhes.fotos.join("\n") : ""}
+                              rows={3}
+                              onChange={(e) => {
+                                const list = [...formFields.principaisTrilhas];
+                                const fotos = e.target.value.split("\n").filter(l => l.trim() !== "");
+                                const det = { ...trilha.detalhes, fotos: fotos };
+                                list[idx] = { ...trilha, detalhes: det };
+                                setFormFields({ ...formFields, principaisTrilhas: list });
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                    {(Array.isArray(formFields.principaisTrilhas) ? formFields.principaisTrilhas : []).length === 0 && (
+                      <p className="text-sm text-muted-foreground text-center py-4">Nenhuma trilha adicionada.</p>
+                    )}
+                  </div>
+                </TabsContent>
+              </Tabs>
             )}
 
             {/* Trilha CRUD Fields */}

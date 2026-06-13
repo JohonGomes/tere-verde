@@ -1,5 +1,5 @@
 import { MapPin, Mountain, Droplets, Camera, X } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
@@ -14,6 +14,8 @@ import { Header } from "../Header";
 import { SocialLinks } from "../SocialLinks";
 import { InteractionsSection } from "../InteractionsSection";
 import type { PageType } from "../../App";
+import { ApiService } from "../../services/api";
+import type { Park } from "../../types";
 
 interface ParqueNacionalPageProps {
   onNavigate: (page: PageType) => void;
@@ -34,10 +36,35 @@ interface Trilha {
   };
 }
 
+function getEmbedUrl(url?: string): string | null {
+  if (!url) return null;
+  if (url.includes("embed/")) return url;
+  if (url.includes("watch?v=")) {
+    return url.replace("watch?v=", "embed/");
+  }
+  if (url.includes("youtu.be/")) {
+    const id = url.split("youtu.be/")[1]?.split("?")[0];
+    return `https://www.youtube.com/embed/${id}`;
+  }
+  return url;
+}
+
 export function ParqueNacionalPage({ onNavigate }: ParqueNacionalPageProps) {
+  const [parkData, setParkData] = useState<Park | null>(null);
   const [trilhaSelecionada, setTrilhaSelecionada] = useState<Trilha | null>(null);
 
-  const trilhas: Trilha[] = [
+  useEffect(() => {
+    ApiService.getParks()
+      .then((parks) => {
+        const found = parks.find((p) => p.id === "parque-nacional");
+        if (found) {
+          setParkData(found);
+        }
+      })
+      .catch((err) => console.error("Erro ao carregar dados do parque nacional:", err));
+  }, []);
+
+  const defaultTrilhas: Trilha[] = [
     {
       nome: "Pedra do Sino",
       dificuldade: "Difícil",
@@ -100,7 +127,7 @@ export function ParqueNacionalPage({ onNavigate }: ParqueNacionalPageProps) {
         dificuldadeDetalhes: "Trilha de nível fácil, com poucos trechos de subida. O caminho é bem marcado e mantido. Adequada para todas as idades, desde que com mínimo de condicionamento físico.",
         recomendacoes: [
           "Levar roupa de banho e toalha",
-          "Protetor solar e repelente",
+          "Protetor solar and repelente",
           "Água e lanches leves",
           "Calçado confortável que possa molhar",
           "Chegada cedo evita aglomeração",
@@ -115,23 +142,54 @@ export function ParqueNacionalPage({ onNavigate }: ParqueNacionalPageProps) {
     }
   ];
 
-  const cachoeiras = [
+  const defaultCachoeiras = [
     { nome: "Véu da Noiva", altura: "40m", descricao: "Cachoeira com piscina natural e fácil acesso" },
     { nome: "Cachoeira Itaporani", altura: "60m", descricao: "Queda d'água impressionante em meio à mata fechada" },
     { nome: "Poço do Castelo", altura: "25m", descricao: "Piscina natural cristalina ideal para banho" }
   ];
+
+  const defaultGaleriaFotos = [
+    "https://images.unsplash.com/photo-1682347812423-45911f8e6ef1?w=400",
+    "https://images.unsplash.com/photo-1604991274937-b93f0c37f5e9?w=400",
+    "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=400",
+    "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400",
+    "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400",
+    "https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?w=400",
+    "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400",
+    "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=400"
+  ];
+
+  const defaultComoChegar = {
+    carro: "Pela BR-116, sentido Teresópolis. A entrada principal fica na Av. Rotariana, s/n, Soberbo. Distância aproximada: 90 km (1h30 de viagem).",
+    onibus: "A partir da Rodoviária Novo Rio, diversas empresas operam a linha Rio-Teresópolis. Do centro de Teresópolis, táxi ou aplicativo até a entrada do parque (aproximadamente 15 minutos)."
+  };
+
+  const nome = parkData?.nome || "Parque Nacional da Serra dos Órgãos";
+  const descricao = parkData?.descricao || "O Parque Nacional da Serra dos Órgãos é uma das unidades de conservação mais importantes do Brasil, criado em 1939. Localizado na Serra do Mar, abriga a famosa Pedra do Sino (2.263m), o Dedo de Deus e outras formações rochosas icônicas.\n\nO parque preserva importantes remanescentes de Mata Atlântica, com rica biodiversidade incluindo espécies endêmicas e ameaçadas de extinção.";
+  const altitude = parkData?.altitude || "2.263m";
+  const area = parkData?.area || "20.024 hectares";
+  const funcionamento = parkData?.funcionamento || "Terça a Domingo, 8h às 17h";
+  const ingressoBase = parkData?.ingressoBase !== undefined ? parkData.ingressoBase : 35.00;
+  
+  const videoUrl = getEmbedUrl(parkData?.video || "https://www.youtube.com/embed/dQw4w9WgXcQ");
+  const trilhas = parkData?.principaisTrilhas || defaultTrilhas;
+  const cachoeiras = parkData?.cachoeiras || defaultCachoeiras;
+  const galeriaFotos = parkData?.galeriaFotos || defaultGaleriaFotos;
+  const comoChegar = parkData?.comoChegar || defaultComoChegar;
+
+  const descricaoParagrafos = descricao.split("\n\n");
 
   return (
     <div className="min-h-screen bg-background">
       <Header onNavigate={onNavigate} />
 
       {/* Hero Banner */}
-      <div className="relative h-[70vh] bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1682347812423-45911f8e6ef1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1920')" }}>
+      <div className="relative h-[70vh] bg-cover bg-center" style={{ backgroundImage: `url('${parkData?.imagem || "https://images.unsplash.com/photo-1682347812423-45911f8e6ef1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1920"}')` }}>
         <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-background"></div>
         <div className="relative container mx-auto px-4 md:px-6 h-full flex flex-col justify-center items-center text-center">
           <FadeIn>
             <h1 className="text-4xl md:text-6xl font-bold text-white mb-4 drop-shadow-lg">
-              Parque Nacional da Serra dos Órgãos
+              {nome}
             </h1>
             <p className="text-lg md:text-xl text-white/90 max-w-2xl drop-shadow-md">
               Uma das unidades de conservação mais importantes do Brasil
@@ -147,35 +205,45 @@ export function ParqueNacionalPage({ onNavigate }: ParqueNacionalPageProps) {
             <SlideIn direction="left">
               <div>
                 <h2 className="text-2xl md:text-3xl font-bold mb-4">Descrição</h2>
-                <p className="text-muted-foreground leading-relaxed">
-                  O Parque Nacional da Serra dos Órgãos é uma das unidades de conservação mais importantes do Brasil,
-                  criado em 1939. Localizado na Serra do Mar, abriga a famosa Pedra do Sino (2.263m), o Dedo de Deus
-                  e outras formações rochosas icônicas.
-                </p>
-                <p className="text-muted-foreground leading-relaxed mt-4">
-                  O parque preserva importantes remanescentes de Mata Atlântica, com rica biodiversidade incluindo
-                  espécies endêmicas e ameaçadas de extinção.
-                </p>
+                {descricaoParagrafos.map((para, idx) => (
+                  <p key={idx} className="text-muted-foreground leading-relaxed mt-4 first:mt-0">
+                    {para}
+                  </p>
+                ))}
                 <div className="flex flex-wrap gap-3 mt-6">
                   <Badge variant="secondary" className="text-sm px-3 py-1">
                     <Mountain className="mr-2 h-3 w-3" />
-                    Altitude: 2.263m
+                    Altitude: {altitude}
                   </Badge>
                   <Badge variant="secondary" className="text-sm px-3 py-1">
                     <MapPin className="mr-2 h-3 w-3" />
-                    Área: 20.024 hectares
+                    Área: {area}
                   </Badge>
                 </div>
               </div>
             </SlideIn>
 
             <SlideIn direction="right">
-              <div className="bg-muted rounded-lg aspect-video flex items-center justify-center">
-                <div className="text-center">
-                  <Camera className="h-16 w-16 text-muted-foreground mx-auto mb-3" />
-                  <p className="text-muted-foreground">Vídeo sobre o parque</p>
+              {videoUrl ? (
+                <div className="rounded-lg overflow-hidden aspect-video border border-border shadow-md">
+                  <iframe
+                    width="100%"
+                    height="100%"
+                    src={videoUrl}
+                    title="Vídeo sobre o parque"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  ></iframe>
                 </div>
-              </div>
+              ) : (
+                <div className="bg-muted rounded-lg aspect-video flex items-center justify-center border border-border">
+                  <div className="text-center">
+                    <Camera className="h-16 w-16 text-muted-foreground mx-auto mb-3" />
+                    <p className="text-muted-foreground">Vídeo sobre o parque</p>
+                  </div>
+                </div>
+              )}
             </SlideIn>
           </div>
         </div>
@@ -188,11 +256,11 @@ export function ParqueNacionalPage({ onNavigate }: ParqueNacionalPageProps) {
           <div className="space-y-12">
             {trilhas.map((trilha, index) => (
               <FadeIn key={index} delay={index * 0.1}>
-                <Card className={`overflow-hidden ${index % 2 === 0 ? '' : ''}`}>
+                <Card className="overflow-hidden">
                   <div className={`grid md:grid-cols-2 gap-0 ${index % 2 === 1 ? 'md:grid-flow-dense' : ''}`}>
                     <div className={`${index % 2 === 1 ? 'md:col-start-2' : ''}`}>
                       <img
-                        src={trilha.imagem}
+                        src={trilha.imagem || "https://images.unsplash.com/photo-1682347812423-45911f8e6ef1?w=800"}
                         alt={trilha.nome}
                         className="w-full h-full object-cover min-h-[300px]"
                         loading="lazy"
@@ -233,7 +301,7 @@ export function ParqueNacionalPage({ onNavigate }: ParqueNacionalPageProps) {
               Cachoeiras
             </h2>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
-              {cachoeiras.slice(0, 3).map((cachoeira, index) => (
+              {cachoeiras.map((cachoeira, index) => (
                 <FadeIn key={index} delay={index * 0.1}>
                   <Card>
                     <CardContent className="pt-6">
@@ -250,34 +318,27 @@ export function ParqueNacionalPage({ onNavigate }: ParqueNacionalPageProps) {
       )}
 
       {/* Galeria de Fotos */}
-      <section className="py-12 md:py-16 bg-muted/30">
-        <div className="container mx-auto px-4 md:px-6">
-          <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center">Galeria de Fotos</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              "https://images.unsplash.com/photo-1682347812423-45911f8e6ef1?w=400",
-              "https://images.unsplash.com/photo-1604991274937-b93f0c37f5e9?w=400",
-              "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=400",
-              "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400",
-              "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400",
-              "https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?w=400",
-              "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400",
-              "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=400"
-            ].map((img, index) => (
-              <FadeIn key={index} delay={index * 0.05}>
-                <div className="aspect-square rounded-lg overflow-hidden">
-                  <img
-                    src={img}
-                    alt={`Foto ${index + 1} do Parque Nacional`}
-                    className="w-full h-full object-cover hover:scale-110 transition-transform duration-300 cursor-pointer"
-                    loading="lazy"
-                  />
-                </div>
-              </FadeIn>
-            ))}
+      {galeriaFotos.length > 0 && (
+        <section className="py-12 md:py-16 bg-muted/30">
+          <div className="container mx-auto px-4 md:px-6">
+            <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center">Galeria de Fotos</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {galeriaFotos.map((img, index) => (
+                <FadeIn key={index} delay={index * 0.05}>
+                  <div className="aspect-square rounded-lg overflow-hidden">
+                    <img
+                      src={img}
+                      alt={`Foto ${index + 1} do Parque Nacional`}
+                      className="w-full h-full object-cover hover:scale-110 transition-transform duration-300 cursor-pointer"
+                      loading="lazy"
+                    />
+                  </div>
+                </FadeIn>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Como Chegar */}
       <section className="py-12 md:py-16 bg-background">
@@ -288,30 +349,32 @@ export function ParqueNacionalPage({ onNavigate }: ParqueNacionalPageProps) {
           </h2>
           <Card>
             <CardContent className="pt-6 space-y-6">
-              <div>
-                <h4 className="font-semibold text-lg mb-2">De carro saindo do Rio de Janeiro:</h4>
-                <p className="text-muted-foreground">
-                  Pela BR-116, sentido Teresópolis. A entrada principal fica na Av. Rotariana, s/n, Soberbo.
-                  Distância aproximada: 90 km (1h30 de viagem).
-                </p>
-              </div>
-              <div>
-                <h4 className="font-semibold text-lg mb-2">De ônibus:</h4>
-                <p className="text-muted-foreground">
-                  A partir da Rodoviária Novo Rio, diversas empresas operam a linha Rio-Teresópolis.
-                  Do centro de Teresópolis, táxi ou aplicativo até a entrada do parque (aproximadamente 15 minutos).
-                </p>
-              </div>
+              {comoChegar.carro && (
+                <div>
+                  <h4 className="font-semibold text-lg mb-2">De carro:</h4>
+                  <p className="text-muted-foreground whitespace-pre-line">
+                    {comoChegar.carro}
+                  </p>
+                </div>
+              )}
+              {comoChegar.onibus && (
+                <div>
+                  <h4 className="font-semibold text-lg mb-2">De ônibus:</h4>
+                  <p className="text-muted-foreground whitespace-pre-line">
+                    {comoChegar.onibus}
+                  </p>
+                </div>
+              )}
               <div>
                 <h4 className="font-semibold text-lg mb-2">Horário de funcionamento:</h4>
                 <p className="text-muted-foreground">
-                  Terça a domingo, das 8h às 17h. Entrada permitida até 12h para trilhas longas.
+                  {funcionamento}
                 </p>
               </div>
               <div>
                 <h4 className="font-semibold text-lg mb-2">Ingresso:</h4>
                 <p className="text-muted-foreground">
-                  R$ 35,00 (inteira) | R$ 17,50 (meia-entrada). Agendamento prévio recomendado.
+                  {ingressoBase > 0 ? `R$ ${ingressoBase.toFixed(2)}` : "Entrada gratuita"}
                 </p>
               </div>
             </CardContent>
@@ -390,31 +453,35 @@ export function ParqueNacionalPage({ onNavigate }: ParqueNacionalPageProps) {
                       </p>
                     </div>
 
-                    <div>
-                      <h3 className="text-lg font-semibold mb-2">Recomendações</h3>
-                      <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-                        {trilhaSelecionada.detalhes.recomendacoes.map((rec, idx) => (
-                          <li key={idx}>{rec}</li>
-                        ))}
-                      </ul>
-                    </div>
+                    {trilhaSelecionada.detalhes.recomendacoes && trilhaSelecionada.detalhes.recomendacoes.length > 0 && (
+                      <div>
+                        <h3 className="text-lg font-semibold mb-2">Recomendações</h3>
+                        <ul className="list-disc list-inside space-y-2 text-muted-foreground">
+                          {trilhaSelecionada.detalhes.recomendacoes.map((rec, idx) => (
+                            <li key={idx}>{rec}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
 
                     {/* Galeria de Fotos */}
-                    <div>
-                      <h3 className="text-lg font-semibold mb-3">Galeria de Fotos</h3>
-                      <div className="grid grid-cols-3 gap-3">
-                        {trilhaSelecionada.detalhes.fotos.map((foto, idx) => (
-                          <div key={idx} className="aspect-square rounded-lg overflow-hidden">
-                            <img
-                              src={foto}
-                              alt={`Foto ${idx + 1} de ${trilhaSelecionada.nome}`}
-                              className="w-full h-full object-cover hover:scale-110 transition-transform duration-300 cursor-pointer"
-                              loading="lazy"
-                            />
-                          </div>
-                        ))}
+                    {trilhaSelecionada.detalhes.fotos && trilhaSelecionada.detalhes.fotos.length > 0 && (
+                      <div>
+                        <h3 className="text-lg font-semibold mb-3">Galeria de Fotos</h3>
+                        <div className="grid grid-cols-3 gap-3">
+                          {trilhaSelecionada.detalhes.fotos.map((foto, idx) => (
+                            <div key={idx} className="aspect-square rounded-lg overflow-hidden">
+                              <img
+                                src={foto}
+                                alt={`Foto ${idx + 1} de ${trilhaSelecionada.nome}`}
+                                className="w-full h-full object-cover hover:scale-110 transition-transform duration-300 cursor-pointer"
+                                loading="lazy"
+                              />
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                    )}
 
                     {/* Interações de Comentários, Likes e Fotos (RF04) */}
                     <InteractionsSection

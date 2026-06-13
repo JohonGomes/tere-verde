@@ -14,7 +14,7 @@ import { Button } from "./ui/button";
 import { TicketPurchaseModal } from "./TicketPurchaseModal";
 
 interface HeaderProps {
-  onNavigate: (page: PageType) => void;
+  onNavigate: (page: PageType, parkId?: string) => void;
 }
 
 export function Header({ onNavigate }: HeaderProps) {
@@ -44,15 +44,7 @@ export function Header({ onNavigate }: HeaderProps) {
   };
 
   const handleSelectPark = (parkId: string) => {
-    if (parkId === "parque-nacional" || parkId === "parque-tres-picos" || parkId === "parque-municipal") {
-      onNavigate(parkId as PageType);
-    } else {
-      const p = parks.find(item => item.id === parkId);
-      if (p) {
-        setSelectedCustomPark(p);
-        setDetailModalOpen(true);
-      }
-    }
+    onNavigate("parque-detalhe", parkId);
   };
 
   return (

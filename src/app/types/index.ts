@@ -38,11 +38,15 @@ export interface Park {
   imagem: string;
   limiteCapacidadeDiaria: number;
   funcionamento: string;
-  comoChegar: {
+  comoChegar?: {
     carro: string;
     onibus: string;
   };
   ingressoBase: number;
+  video?: string;
+  principaisTrilhas?: any[];
+  cachoeiras?: any[];
+  galeriaFotos?: string[];
 }
 
 export interface EventEntity {

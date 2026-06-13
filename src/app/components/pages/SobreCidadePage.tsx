@@ -7,7 +7,7 @@ import { SocialLinks } from "../SocialLinks";
 import type { PageType } from "../../App";
 
 interface SobreCidadePageProps {
-  onNavigate: (page: PageType) => void;
+  onNavigate: (page: PageType, parkId?: string) => void;
 }
 
 export function SobreCidadePage({ onNavigate }: SobreCidadePageProps) {
@@ -75,7 +75,7 @@ export function SobreCidadePage({ onNavigate }: SobreCidadePageProps) {
                 Fundada formalmente em 1891, a cidade deve seu nome a uma homenagem direta à imperatriz **Dona Teresa Cristina**, esposa de Dom Pedro II. A Família Imperial brasileira costumava subir a serra para desfrutar do clima agradável e das paisagens espetaculares durante os quentes verões fluminenses.
               </p>
               <p>
-                Com o passar das décadas, Teresópolis tornou-se mundialmente famosa como o berço do montanhismo nacional, impulsionada pelo icônico pico **Dedo de Deus**, conquistado pela primeira vez em 1912. Desde então, montanhistas e escaladores de todos os continentes visitam a região serrana para testar seus limites em paredões rochosos históricos e trilhas exuberantes.
+                Com o passar das décadas, Teresópolis tornou-se mundialmente famosa como o berço do montanhismo nacional, impulsionada pelo icônico pico **Dedo de Deus**, conquistado pela primeira vez in 1912. Desde então, montanhistas e escaladores de todos os continentes visitam a região serrana para testar seus limites em paredões rochosos históricos e trilhas exuberantes.
               </p>
               <p>
                 Hoje, além das exuberantes florestas e reservas da biosfera, a cidade se destaca pela alta gastronomia serrana, produção de cervejas artesanais premiadas, agricultura familiar orgânica de ponta e infraestrutura aconchegante para receber casais, famílias e aventureiros de fim de semana.
@@ -120,7 +120,7 @@ export function SobreCidadePage({ onNavigate }: SobreCidadePageProps) {
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    onClick={() => onNavigate(p.page as PageType)}
+                    onClick={() => onNavigate("parque-detalhe", p.page)}
                     className="w-full font-semibold cursor-pointer"
                   >
                     Ver Parque

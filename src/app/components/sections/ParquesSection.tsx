@@ -44,7 +44,7 @@ const STATIC_PARQUES = [
 ];
 
 interface ParquesSectionProps {
-  onNavigate?: (page: any) => void;
+  onNavigate?: (page: any, parkId?: string) => void;
 }
 
 export function ParquesSection({ onNavigate }: ParquesSectionProps) {
@@ -67,16 +67,8 @@ export function ParquesSection({ onNavigate }: ParquesSectionProps) {
   };
 
   const handleSelectPark = (parkId: string) => {
-    if (parkId === "parque-nacional" || parkId === "parque-tres-picos" || parkId === "parque-municipal") {
-      if (onNavigate) {
-        onNavigate(parkId);
-      }
-    } else {
-      const p = parques.find(item => item.id === parkId);
-      if (p) {
-        setSelectedCustomPark(p);
-        setDetailModalOpen(true);
-      }
+    if (onNavigate) {
+      onNavigate("parque-detalhe", parkId);
     }
   };
 

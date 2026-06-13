@@ -1,5 +1,5 @@
 import { MapPin, Mountain, Droplets, Camera } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
@@ -14,6 +14,8 @@ import { Header } from "../Header";
 import { SocialLinks } from "../SocialLinks";
 import { InteractionsSection } from "../InteractionsSection";
 import type { PageType } from "../../App";
+import { ApiService } from "../../services/api";
+import type { Park } from "../../types";
 
 interface ParqueMunicipalPageProps {
   onNavigate: (page: PageType) => void;
@@ -34,10 +36,35 @@ interface Trilha {
   };
 }
 
+function getEmbedUrl(url?: string): string | null {
+  if (!url) return null;
+  if (url.includes("embed/")) return url;
+  if (url.includes("watch?v=")) {
+    return url.replace("watch?v=", "embed/");
+  }
+  if (url.includes("youtu.be/")) {
+    const id = url.split("youtu.be/")[1]?.split("?")[0];
+    return `https://www.youtube.com/embed/${id}`;
+  }
+  return url;
+}
+
 export function ParqueMunicipalPage({ onNavigate }: ParqueMunicipalPageProps) {
+  const [parkData, setParkData] = useState<Park | null>(null);
   const [trilhaSelecionada, setTrilhaSelecionada] = useState<Trilha | null>(null);
 
-  const trilhas: Trilha[] = [
+  useEffect(() => {
+    ApiService.getParks()
+      .then((parks) => {
+        const found = parks.find((p) => p.id === "parque-municipal");
+        if (found) {
+          setParkData(found);
+        }
+      })
+      .catch((err) => console.error("Erro ao carregar dados do parque municipal:", err));
+  }, []);
+
+  const defaultTrilhas: Trilha[] = [
     {
       nome: "Trilha da Primavera",
       dificuldade: "Fácil",
@@ -115,23 +142,54 @@ export function ParqueMunicipalPage({ onNavigate }: ParqueMunicipalPageProps) {
     }
   ];
 
-  const cachoeiras = [
+  const defaultCachoeiras = [
     { nome: "Cachoeira do Imbuí", altura: "30m", descricao: "Cachoeira com acesso fácil e piscina natural" },
     { nome: "Cascata dos Fetos", altura: "12m", descricao: "Pequena cascata cercada por samambaias" },
     { nome: "Poço Verde", altura: "8m", descricao: "Piscina natural com água cristalina e verde" }
   ];
+
+  const defaultGaleriaFotos = [
+    "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400",
+    "https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=400",
+    "https://images.unsplash.com/photo-1511497584788-876760111969?w=400",
+    "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=400",
+    "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400",
+    "https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?w=400",
+    "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=400",
+    "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=400"
+  ];
+
+  const defaultComoChegar = {
+    carro: "Do centro de Teresópolis, seguir pela Av. Lúcio Meira em direção a Nova Friburgo. Estrada Teresópolis-Friburgo (RJ-130), km 6, Albuquerque. Estacionamento gratuito disponível na entrada do parque.",
+    onibus: "Ônibus da linha \"Albuquerque\" sai do terminal rodoviário de Teresópolis. Descer no km 6 da RJ-130."
+  };
+
+  const nome = parkData?.nome || "Parque Natural Municipal Montanhas de Teresópolis";
+  const descricao = parkData?.descricao || "O Parque Natural Municipal Montanhas de Teresópolis, criado em 2009, é uma unidade de conservação municipal que protege importantes áreas de Mata Atlântica no entorno da cidade. Com trilhas bem sinalizadas e infraestrutura preparada para visitação.\n\nIdeal para famílias, idosos e iniciantes, oferece trilhas leves, cachoeiras acessíveis, áreas de piquenique e mirantes com vistas espetaculares.";
+  const altitude = parkData?.altitude || "900-1.200m";
+  const area = parkData?.area || "3.600 hectares";
+  const funcionamento = parkData?.funcionamento || "Todos os dias, das 8h às 17h. Última entrada às 16h.";
+  const ingressoBase = parkData?.ingressoBase !== undefined ? parkData.ingressoBase : 10.00;
+  
+  const videoUrl = getEmbedUrl(parkData?.video || "https://www.youtube.com/embed/dQw4w9WgXcQ");
+  const trilhas = parkData?.principaisTrilhas || defaultTrilhas;
+  const cachoeiras = parkData?.cachoeiras || defaultCachoeiras;
+  const galeriaFotos = parkData?.galeriaFotos || defaultGaleriaFotos;
+  const comoChegar = parkData?.comoChegar || defaultComoChegar;
+
+  const descricaoParagrafos = descricao.split("\n\n");
 
   return (
     <div className="min-h-screen bg-background">
       <Header onNavigate={onNavigate} />
 
       {/* Hero Banner */}
-      <div className="relative h-[70vh] bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1441974231531-c6227db76b6e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1920')" }}>
+      <div className="relative h-[70vh] bg-cover bg-center" style={{ backgroundImage: `url('${parkData?.imagem || "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1920"}')` }}>
         <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-background"></div>
         <div className="relative container mx-auto px-4 md:px-6 h-full flex flex-col justify-center items-center text-center">
           <FadeIn>
             <h1 className="text-4xl md:text-6xl font-bold text-white mb-4 drop-shadow-lg">
-              Parque Natural Municipal Montanhas de Teresópolis
+              {nome}
             </h1>
             <p className="text-lg md:text-xl text-white/90 max-w-2xl drop-shadow-md">
               Natureza acessível para toda a família
@@ -147,35 +205,45 @@ export function ParqueMunicipalPage({ onNavigate }: ParqueMunicipalPageProps) {
             <SlideIn direction="left">
               <div>
                 <h2 className="text-2xl md:text-3xl font-bold mb-4">Descrição</h2>
-                <p className="text-muted-foreground leading-relaxed">
-                  O Parque Natural Municipal Montanhas de Teresópolis, criado em 2009, é uma unidade de conservação
-                  municipal que protege importantes áreas de Mata Atlântica no entorno da cidade. Com trilhas bem
-                  sinalizadas e infraestrutura preparada para visitação.
-                </p>
-                <p className="text-muted-foreground leading-relaxed mt-4">
-                  Ideal para famílias, idosos e iniciantes, oferece trilhas leves, cachoeiras acessíveis,
-                  áreas de piquenique e mirantes com vistas espetaculares.
-                </p>
+                {descricaoParagrafos.map((para, idx) => (
+                  <p key={idx} className="text-muted-foreground leading-relaxed mt-4 first:mt-0">
+                    {para}
+                  </p>
+                ))}
                 <div className="flex flex-wrap gap-3 mt-6">
                   <Badge variant="secondary" className="text-sm px-3 py-1">
                     <Mountain className="mr-2 h-3 w-3" />
-                    Altitude: 900-1.200m
+                    Altitude: {altitude}
                   </Badge>
                   <Badge variant="secondary" className="text-sm px-3 py-1">
                     <MapPin className="mr-2 h-3 w-3" />
-                    Área: 3.600 hectares
+                    Área: {area}
                   </Badge>
                 </div>
               </div>
             </SlideIn>
 
             <SlideIn direction="right">
-              <div className="bg-muted rounded-lg aspect-video flex items-center justify-center">
-                <div className="text-center">
-                  <Camera className="h-16 w-16 text-muted-foreground mx-auto mb-3" />
-                  <p className="text-muted-foreground">Vídeo sobre o parque</p>
+              {videoUrl ? (
+                <div className="rounded-lg overflow-hidden aspect-video border border-border shadow-md">
+                  <iframe
+                    width="100%"
+                    height="100%"
+                    src={videoUrl}
+                    title="Vídeo sobre o parque"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  ></iframe>
                 </div>
-              </div>
+              ) : (
+                <div className="bg-muted rounded-lg aspect-video flex items-center justify-center border border-border">
+                  <div className="text-center">
+                    <Camera className="h-16 w-16 text-muted-foreground mx-auto mb-3" />
+                    <p className="text-muted-foreground">Vídeo sobre o parque</p>
+                  </div>
+                </div>
+              )}
             </SlideIn>
           </div>
         </div>
@@ -192,7 +260,7 @@ export function ParqueMunicipalPage({ onNavigate }: ParqueMunicipalPageProps) {
                   <div className={`grid md:grid-cols-2 gap-0 ${index % 2 === 1 ? 'md:grid-flow-dense' : ''}`}>
                     <div className={`${index % 2 === 1 ? 'md:col-start-2' : ''}`}>
                       <img
-                        src={trilha.imagem}
+                        src={trilha.imagem || "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800"}
                         alt={trilha.nome}
                         className="w-full h-full object-cover min-h-[300px]"
                         loading="lazy"
@@ -233,7 +301,7 @@ export function ParqueMunicipalPage({ onNavigate }: ParqueMunicipalPageProps) {
               Cachoeiras
             </h2>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
-              {cachoeiras.slice(0, 3).map((cachoeira, index) => (
+              {cachoeiras.map((cachoeira, index) => (
                 <FadeIn key={index} delay={index * 0.1}>
                   <Card>
                     <CardContent className="pt-6">
@@ -250,34 +318,27 @@ export function ParqueMunicipalPage({ onNavigate }: ParqueMunicipalPageProps) {
       )}
 
       {/* Galeria de Fotos */}
-      <section className="py-12 md:py-16 bg-muted/30">
-        <div className="container mx-auto px-4 md:px-6">
-          <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center">Galeria de Fotos</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400",
-              "https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=400",
-              "https://images.unsplash.com/photo-1511497584788-876760111969?w=400",
-              "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=400",
-              "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400",
-              "https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?w=400",
-              "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=400",
-              "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=400"
-            ].map((img, index) => (
-              <FadeIn key={index} delay={index * 0.05}>
-                <div className="aspect-square rounded-lg overflow-hidden">
-                  <img
-                    src={img}
-                    alt={`Foto ${index + 1} do Parque Municipal`}
-                    className="w-full h-full object-cover hover:scale-110 transition-transform duration-300 cursor-pointer"
-                    loading="lazy"
-                  />
-                </div>
-              </FadeIn>
-            ))}
+      {galeriaFotos.length > 0 && (
+        <section className="py-12 md:py-16 bg-muted/30">
+          <div className="container mx-auto px-4 md:px-6">
+            <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center">Galeria de Fotos</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {galeriaFotos.map((img, index) => (
+                <FadeIn key={index} delay={index * 0.05}>
+                  <div className="aspect-square rounded-lg overflow-hidden">
+                    <img
+                      src={img}
+                      alt={`Foto ${index + 1} do Parque Municipal`}
+                      className="w-full h-full object-cover hover:scale-110 transition-transform duration-300 cursor-pointer"
+                      loading="lazy"
+                    />
+                  </div>
+                </FadeIn>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Como Chegar */}
       <section className="py-12 md:py-16 bg-background">
@@ -288,37 +349,32 @@ export function ParqueMunicipalPage({ onNavigate }: ParqueMunicipalPageProps) {
           </h2>
           <Card>
             <CardContent className="pt-6 space-y-6">
-              <div>
-                <h4 className="font-semibold text-lg mb-2">Localização:</h4>
-                <p className="text-muted-foreground">
-                  Estrada Teresópolis-Friburgo (RJ-130), km 6, Albuquerque, Teresópolis, RJ.
-                  A apenas 10 minutos do centro da cidade.
-                </p>
-              </div>
-              <div>
-                <h4 className="font-semibold text-lg mb-2">De carro:</h4>
-                <p className="text-muted-foreground">
-                  Do centro de Teresópolis, seguir pela Av. Lúcio Meira em direção a Nova Friburgo.
-                  Estacionamento gratuito disponível na entrada do parque.
-                </p>
-              </div>
-              <div>
-                <h4 className="font-semibold text-lg mb-2">Transporte público:</h4>
-                <p className="text-muted-foreground">
-                  Ônibus da linha "Albuquerque" sai do terminal rodoviário de Teresópolis.
-                  Descer no km 6 da RJ-130.
-                </p>
-              </div>
+              {comoChegar.carro && (
+                <div>
+                  <h4 className="font-semibold text-lg mb-2">De carro:</h4>
+                  <p className="text-muted-foreground whitespace-pre-line">
+                    {comoChegar.carro}
+                  </p>
+                </div>
+              )}
+              {comoChegar.onibus && (
+                <div>
+                  <h4 className="font-semibold text-lg mb-2">De ônibus:</h4>
+                  <p className="text-muted-foreground whitespace-pre-line">
+                    {comoChegar.onibus}
+                  </p>
+                </div>
+              )}
               <div>
                 <h4 className="font-semibold text-lg mb-2">Horário de funcionamento:</h4>
                 <p className="text-muted-foreground">
-                  Todos os dias, das 8h às 17h. Última entrada às 16h.
+                  {funcionamento}
                 </p>
               </div>
               <div>
                 <h4 className="font-semibold text-lg mb-2">Ingresso:</h4>
                 <p className="text-muted-foreground">
-                  R$ 10,00 (inteira) | R$ 5,00 (meia-entrada). Crianças até 5 anos não pagam.
+                  {ingressoBase > 0 ? `R$ ${ingressoBase.toFixed(2)}` : "Entrada gratuita"}
                 </p>
               </div>
             </CardContent>
@@ -368,29 +424,33 @@ export function ParqueMunicipalPage({ onNavigate }: ParqueMunicipalPageProps) {
                   </p>
                 </div>
 
-                <div>
-                  <h3 className="text-lg font-semibold mb-2">Recomendações</h3>
-                  <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                    {trilhaSelecionada.detalhes.recomendacoes.map((rec, idx) => (
-                      <li key={idx}>{rec}</li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-semibold mb-3">Galeria de Fotos</h3>
-                  <div className="grid grid-cols-3 gap-4">
-                    {trilhaSelecionada.detalhes.fotos.map((foto, idx) => (
-                      <img
-                        key={idx}
-                        src={foto}
-                        alt={`${trilhaSelecionada.nome} - Foto ${idx + 1}`}
-                        className="w-full aspect-square object-cover rounded-lg"
-                        loading="lazy"
-                      />
-                    ))}
+                {trilhaSelecionada.detalhes.recomendacoes && trilhaSelecionada.detalhes.recomendacoes.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2">Recomendações</h3>
+                    <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                      {trilhaSelecionada.detalhes.recomendacoes.map((rec, idx) => (
+                        <li key={idx}>{rec}</li>
+                      ))}
+                    </ul>
                   </div>
-                </div>
+                )}
+
+                {trilhaSelecionada.detalhes.fotos && trilhaSelecionada.detalhes.fotos.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3">Galeria de Fotos</h3>
+                    <div className="grid grid-cols-3 gap-4">
+                      {trilhaSelecionada.detalhes.fotos.map((foto, idx) => (
+                        <img
+                          key={idx}
+                          src={foto}
+                          alt={`${trilhaSelecionada.nome} - Foto ${idx + 1}`}
+                          className="w-full aspect-square object-cover rounded-lg"
+                          loading="lazy"
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Interações de Comentários, Likes e Fotos (RF04) */}
                 <InteractionsSection

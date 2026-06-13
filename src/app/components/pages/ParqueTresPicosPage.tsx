@@ -1,5 +1,5 @@
 import { MapPin, Mountain, Droplets, Camera } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
@@ -14,6 +14,8 @@ import { Header } from "../Header";
 import { SocialLinks } from "../SocialLinks";
 import { InteractionsSection } from "../InteractionsSection";
 import type { PageType } from "../../App";
+import { ApiService } from "../../services/api";
+import type { Park } from "../../types";
 
 interface ParqueTresPicosPageProps {
   onNavigate: (page: PageType) => void;
@@ -34,10 +36,35 @@ interface Trilha {
   };
 }
 
+function getEmbedUrl(url?: string): string | null {
+  if (!url) return null;
+  if (url.includes("embed/")) return url;
+  if (url.includes("watch?v=")) {
+    return url.replace("watch?v=", "embed/");
+  }
+  if (url.includes("youtu.be/")) {
+    const id = url.split("youtu.be/")[1]?.split("?")[0];
+    return `https://www.youtube.com/embed/${id}`;
+  }
+  return url;
+}
+
 export function ParqueTresPicosPage({ onNavigate }: ParqueTresPicosPageProps) {
+  const [parkData, setParkData] = useState<Park | null>(null);
   const [trilhaSelecionada, setTrilhaSelecionada] = useState<Trilha | null>(null);
 
-  const trilhas: Trilha[] = [
+  useEffect(() => {
+    ApiService.getParks()
+      .then((parks) => {
+        const found = parks.find((p) => p.id === "parque-tres-picos");
+        if (found) {
+          setParkData(found);
+        }
+      })
+      .catch((err) => console.error("Erro ao carregar dados do parque tres picos:", err));
+  }, []);
+
+  const defaultTrilhas: Trilha[] = [
     {
       nome: "Pico do Açu",
       dificuldade: "Muito Difícil",
@@ -115,23 +142,54 @@ export function ParqueTresPicosPage({ onNavigate }: ParqueTresPicosPageProps) {
     }
   ];
 
-  const cachoeiras = [
+  const defaultCachoeiras = [
     { nome: "Cachoeira do Salomão", altura: "80m", descricao: "Queda d'água impressionante com piscina natural" },
     { nome: "Cachoeira da Grama", altura: "35m", descricao: "Cachoeira de fácil acesso em meio à vegetação nativa" },
     { nome: "Poço do Marimbondo", altura: "15m", descricao: "Piscina natural cristalina cercada por pedras" }
   ];
+
+  const defaultGaleriaFotos = [
+    "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400",
+    "https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?w=400",
+    "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400",
+    "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=400",
+    "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400",
+    "https://images.unsplash.com/photo-1511497584788-876760111969?w=400",
+    "https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=400",
+    "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=400"
+  ];
+
+  const defaultComoChegar = {
+    carro: "Pela RJ-116, sentido Nova Friburgo/Cachoeiras de Macacu. Acesso principal pela Estrada RJ-116, km 57. Distância aproximada: 100 km (2h de viagem).",
+    onibus: "Seguir pela RJ-130 até Cachoeiras de Macacu, depois RJ-116. Aproximadamente 50 km (1h15)."
+  };
+
+  const nome = parkData?.nome || "Parque Estadual dos Três Picos";
+  const descricao = parkData?.descricao || "O Parque Estadual dos Três Picos é a maior unidade de conservação integral do Estado do Rio de Janeiro, criado em 2002. O parque protege importante área de Mata Atlântica, com altitude variando de 300m a 2.310m no Pico do Açu.\n\nCom paisagens deslumbrantes, abriga nascentes de rios importantes, cachoeiras espetaculares e uma biodiversidade única da Serra dos Órgãos.";
+  const altitude = parkData?.altitude || "2.310m";
+  const area = parkData?.area || "46.350 hectares";
+  const funcionamento = parkData?.funcionamento || "Todos os dias, 8h às 17h";
+  const ingressoBase = parkData?.ingressoBase !== undefined ? parkData.ingressoBase : 0.00;
+  
+  const videoUrl = getEmbedUrl(parkData?.video || "https://www.youtube.com/embed/dQw4w9WgXcQ");
+  const trilhas = parkData?.principaisTrilhas || defaultTrilhas;
+  const cachoeiras = parkData?.cachoeiras || defaultCachoeiras;
+  const galeriaFotos = parkData?.galeriaFotos || defaultGaleriaFotos;
+  const comoChegar = parkData?.comoChegar || defaultComoChegar;
+
+  const descricaoParagrafos = descricao.split("\n\n");
 
   return (
     <div className="min-h-screen bg-background">
       <Header onNavigate={onNavigate} />
 
       {/* Hero Banner */}
-      <div className="relative h-[70vh] bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1920')" }}>
+      <div className="relative h-[70vh] bg-cover bg-center" style={{ backgroundImage: `url('${parkData?.imagem || "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1920"}')` }}>
         <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-background"></div>
         <div className="relative container mx-auto px-4 md:px-6 h-full flex flex-col justify-center items-center text-center">
           <FadeIn>
             <h1 className="text-4xl md:text-6xl font-bold text-white mb-4 drop-shadow-lg">
-              Parque Estadual dos Três Picos
+              {nome}
             </h1>
             <p className="text-lg md:text-xl text-white/90 max-w-2xl drop-shadow-md">
               A maior unidade de conservação integral do Estado do Rio de Janeiro
@@ -147,35 +205,45 @@ export function ParqueTresPicosPage({ onNavigate }: ParqueTresPicosPageProps) {
             <SlideIn direction="left">
               <div>
                 <h2 className="text-2xl md:text-3xl font-bold mb-4">Descrição</h2>
-                <p className="text-muted-foreground leading-relaxed">
-                  O Parque Estadual dos Três Picos é a maior unidade de conservação integral do Estado do Rio de Janeiro,
-                  criado em 2002. O parque protege importante área de Mata Atlântica, com altitude variando de 300m a
-                  2.310m no Pico do Açu.
-                </p>
-                <p className="text-muted-foreground leading-relaxed mt-4">
-                  Com paisagens deslumbrantes, abriga nascentes de rios importantes, cachoeiras espetaculares e
-                  uma biodiversidade única da Serra dos Órgãos.
-                </p>
+                {descricaoParagrafos.map((para, idx) => (
+                  <p key={idx} className="text-muted-foreground leading-relaxed mt-4 first:mt-0">
+                    {para}
+                  </p>
+                ))}
                 <div className="flex flex-wrap gap-3 mt-6">
                   <Badge variant="secondary" className="text-sm px-3 py-1">
                     <Mountain className="mr-2 h-3 w-3" />
-                    Altitude: 2.310m
+                    Altitude: {altitude}
                   </Badge>
                   <Badge variant="secondary" className="text-sm px-3 py-1">
                     <MapPin className="mr-2 h-3 w-3" />
-                    Área: 46.350 hectares
+                    Área: {area}
                   </Badge>
                 </div>
               </div>
             </SlideIn>
 
             <SlideIn direction="right">
-              <div className="bg-muted rounded-lg aspect-video flex items-center justify-center">
-                <div className="text-center">
-                  <Camera className="h-16 w-16 text-muted-foreground mx-auto mb-3" />
-                  <p className="text-muted-foreground">Vídeo sobre o parque</p>
+              {videoUrl ? (
+                <div className="rounded-lg overflow-hidden aspect-video border border-border shadow-md">
+                  <iframe
+                    width="100%"
+                    height="100%"
+                    src={videoUrl}
+                    title="Vídeo sobre o parque"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  ></iframe>
                 </div>
-              </div>
+              ) : (
+                <div className="bg-muted rounded-lg aspect-video flex items-center justify-center border border-border">
+                  <div className="text-center">
+                    <Camera className="h-16 w-16 text-muted-foreground mx-auto mb-3" />
+                    <p className="text-muted-foreground">Vídeo sobre o parque</p>
+                  </div>
+                </div>
+              )}
             </SlideIn>
           </div>
         </div>
@@ -192,7 +260,7 @@ export function ParqueTresPicosPage({ onNavigate }: ParqueTresPicosPageProps) {
                   <div className={`grid md:grid-cols-2 gap-0 ${index % 2 === 1 ? 'md:grid-flow-dense' : ''}`}>
                     <div className={`${index % 2 === 1 ? 'md:col-start-2' : ''}`}>
                       <img
-                        src={trilha.imagem}
+                        src={trilha.imagem || "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800"}
                         alt={trilha.nome}
                         className="w-full h-full object-cover min-h-[300px]"
                         loading="lazy"
@@ -233,7 +301,7 @@ export function ParqueTresPicosPage({ onNavigate }: ParqueTresPicosPageProps) {
               Cachoeiras
             </h2>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
-              {cachoeiras.slice(0, 3).map((cachoeira, index) => (
+              {cachoeiras.map((cachoeira, index) => (
                 <FadeIn key={index} delay={index * 0.1}>
                   <Card>
                     <CardContent className="pt-6">
@@ -250,34 +318,27 @@ export function ParqueTresPicosPage({ onNavigate }: ParqueTresPicosPageProps) {
       )}
 
       {/* Galeria de Fotos */}
-      <section className="py-12 md:py-16 bg-muted/30">
-        <div className="container mx-auto px-4 md:px-6">
-          <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center">Galeria de Fotos</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400",
-              "https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?w=400",
-              "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400",
-              "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=400",
-              "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400",
-              "https://images.unsplash.com/photo-1511497584788-876760111969?w=400",
-              "https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=400",
-              "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=400"
-            ].map((img, index) => (
-              <FadeIn key={index} delay={index * 0.05}>
-                <div className="aspect-square rounded-lg overflow-hidden">
-                  <img
-                    src={img}
-                    alt={`Foto ${index + 1} do Parque Três Picos`}
-                    className="w-full h-full object-cover hover:scale-110 transition-transform duration-300 cursor-pointer"
-                    loading="lazy"
-                  />
-                </div>
-              </FadeIn>
-            ))}
+      {galeriaFotos.length > 0 && (
+        <section className="py-12 md:py-16 bg-muted/30">
+          <div className="container mx-auto px-4 md:px-6">
+            <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center">Galeria de Fotos</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {galeriaFotos.map((img, index) => (
+                <FadeIn key={index} delay={index * 0.05}>
+                  <div className="aspect-square rounded-lg overflow-hidden">
+                    <img
+                      src={img}
+                      alt={`Foto ${index + 1} do Parque Três Picos`}
+                      className="w-full h-full object-cover hover:scale-110 transition-transform duration-300 cursor-pointer"
+                      loading="lazy"
+                    />
+                  </div>
+                </FadeIn>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Como Chegar */}
       <section className="py-12 md:py-16 bg-background">
@@ -288,30 +349,32 @@ export function ParqueTresPicosPage({ onNavigate }: ParqueTresPicosPageProps) {
           </h2>
           <Card>
             <CardContent className="pt-6 space-y-6">
+              {comoChegar.carro && (
+                <div>
+                  <h4 className="font-semibold text-lg mb-2">De carro:</h4>
+                  <p className="text-muted-foreground whitespace-pre-line">
+                    {comoChegar.carro}
+                  </p>
+                </div>
+              )}
+              {comoChegar.onibus && (
+                <div>
+                  <h4 className="font-semibold text-lg mb-2">De ônibus:</h4>
+                  <p className="text-muted-foreground whitespace-pre-line">
+                    {comoChegar.onibus}
+                  </p>
+                </div>
+              )}
               <div>
-                <h4 className="font-semibold text-lg mb-2">De carro saindo do Rio de Janeiro:</h4>
+                <h4 className="font-semibold text-lg mb-2">Horário de funcionamento:</h4>
                 <p className="text-muted-foreground">
-                  Pela RJ-116, sentido Nova Friburgo/Cachoeiras de Macacu. Acesso principal pela Estrada RJ-116,
-                  km 57. Distância aproximada: 100 km (2h de viagem).
-                </p>
-              </div>
-              <div>
-                <h4 className="font-semibold text-lg mb-2">De Teresópolis:</h4>
-                <p className="text-muted-foreground">
-                  Seguir pela RJ-130 até Cachoeiras de Macacu, depois RJ-116. Aproximadamente 50 km (1h15).
-                </p>
-              </div>
-              <div>
-                <h4 className="font-semibold text-lg mb-2">Importante:</h4>
-                <p className="text-muted-foreground">
-                  Visitação requer autorização prévia do INEA. Contato obrigatório com a administração do parque
-                  para trilhas técnicas. Recomenda-se ir com guia especializado.
+                  {funcionamento}
                 </p>
               </div>
               <div>
                 <h4 className="font-semibold text-lg mb-2">Ingresso:</h4>
                 <p className="text-muted-foreground">
-                  Gratuito, mas requer agendamento prévio pelo site do INEA.
+                  {ingressoBase > 0 ? `R$ ${ingressoBase.toFixed(2)}` : "Entrada gratuita"}
                 </p>
               </div>
             </CardContent>
@@ -374,31 +437,35 @@ export function ParqueTresPicosPage({ onNavigate }: ParqueTresPicosPageProps) {
                       </p>
                     </div>
 
-                    <div>
-                      <h3 className="text-lg font-semibold mb-2">Recomendações</h3>
-                      <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-                        {trilhaSelecionada.detalhes.recomendacoes.map((rec, idx) => (
-                          <li key={idx}>{rec}</li>
-                        ))}
-                      </ul>
-                    </div>
+                    {trilhaSelecionada.detalhes.recomendacoes && trilhaSelecionada.detalhes.recomendacoes.length > 0 && (
+                      <div>
+                        <h3 className="text-lg font-semibold mb-2">Recomendações</h3>
+                        <ul className="list-disc list-inside space-y-2 text-muted-foreground">
+                          {trilhaSelecionada.detalhes.recomendacoes.map((rec, idx) => (
+                            <li key={idx}>{rec}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
 
                     {/* Galeria de Fotos */}
-                    <div>
-                      <h3 className="text-lg font-semibold mb-3">Galeria de Fotos</h3>
-                      <div className="grid grid-cols-3 gap-3">
-                        {trilhaSelecionada.detalhes.fotos.map((foto, idx) => (
-                          <div key={idx} className="aspect-square rounded-lg overflow-hidden">
-                            <img
-                              src={foto}
-                              alt={`Foto ${idx + 1} de ${trilhaSelecionada.nome}`}
-                              className="w-full h-full object-cover hover:scale-110 transition-transform duration-300 cursor-pointer"
-                              loading="lazy"
-                            />
-                          </div>
-                        ))}
+                    {trilhaSelecionada.detalhes.fotos && trilhaSelecionada.detalhes.fotos.length > 0 && (
+                      <div>
+                        <h3 className="text-lg font-semibold mb-3">Galeria de Fotos</h3>
+                        <div className="grid grid-cols-3 gap-3">
+                          {trilhaSelecionada.detalhes.fotos.map((foto, idx) => (
+                            <div key={idx} className="aspect-square rounded-lg overflow-hidden">
+                              <img
+                                src={foto}
+                                alt={`Foto ${idx + 1} de ${trilhaSelecionada.nome}`}
+                                className="w-full h-full object-cover hover:scale-110 transition-transform duration-300 cursor-pointer"
+                                loading="lazy"
+                              />
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                    )}
 
                     {/* Interações de Comentários, Likes e Fotos (RF04) */}
                     <InteractionsSection

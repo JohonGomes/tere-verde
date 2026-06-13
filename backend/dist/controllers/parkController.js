@@ -15,8 +15,45 @@ const crypto_1 = __importDefault(require("crypto"));
 // 1. Listar Parques
 async function getParks(req, res) {
     try {
-        const [rows] = await db_1.default.execute("SELECT id, nome, descricao, altitude, area, imagem, limite_capacidade_diaria as limiteCapacidadeDiaria, funcionamento, ingresso_base as ingressoBase FROM parks");
-        return res.json(rows);
+        const [rows] = await db_1.default.execute("SELECT id, nome, descricao, altitude, area, imagem, limite_capacidade_diaria as limiteCapacidadeDiaria, funcionamento, ingresso_base as ingressoBase, video, principais_trilhas as principaisTrilhas, cachoeiras, galeria_fotos as galeriaFotos, como_chegar as comoChegar FROM parks");
+        const parsedRows = rows.map((row) => {
+            let comoChegar = null;
+            let principaisTrilhas = null;
+            let cachoeiras = null;
+            let galeriaFotos = null;
+            try {
+                comoChegar = row.comoChegar ? (typeof row.comoChegar === "string" ? JSON.parse(row.comoChegar) : row.comoChegar) : null;
+            }
+            catch (e) {
+                comoChegar = row.comoChegar;
+            }
+            try {
+                principaisTrilhas = row.principaisTrilhas ? (typeof row.principaisTrilhas === "string" ? JSON.parse(row.principaisTrilhas) : row.principaisTrilhas) : null;
+            }
+            catch (e) {
+                principaisTrilhas = row.principaisTrilhas;
+            }
+            try {
+                cachoeiras = row.cachoeiras ? (typeof row.cachoeiras === "string" ? JSON.parse(row.cachoeiras) : row.cachoeiras) : null;
+            }
+            catch (e) {
+                cachoeiras = row.cachoeiras;
+            }
+            try {
+                galeriaFotos = row.galeriaFotos ? (typeof row.galeriaFotos === "string" ? JSON.parse(row.galeriaFotos) : row.galeriaFotos) : null;
+            }
+            catch (e) {
+                galeriaFotos = row.galeriaFotos;
+            }
+            return {
+                ...row,
+                comoChegar,
+                principaisTrilhas,
+                cachoeiras,
+                galeriaFotos
+            };
+        });
+        return res.json(parsedRows);
     }
     catch (error) {
         console.error(error);
@@ -149,9 +186,16 @@ async function checkInTicket(req, res) {
 // 5. CRUD de Parques (Admin)
 async function addPark(req, res) {
     try {
-        const { nome, descricao, altitude, area, imagem, limiteCapacidadeDiaria, funcionamento, ingressoBase } = req.body;
+        const { nome, descricao, altitude, area, imagem, limiteCapacidadeDiaria, funcionamento, ingressoBase, video, principaisTrilhas, cachoeiras, galeriaFotos, comoChegar } = req.body;
         const id = `parque-${crypto_1.default.randomUUID().slice(0, 8)}`;
-        await db_1.default.execute("INSERT INTO parks (id, nome, descricao, altitude, area, imagem, limite_capacidade_diaria, funcionamento, ingresso_base) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", [
+        const serialize = (val) => {
+            if (val === null || val === undefined)
+                return null;
+            if (typeof val === "string")
+                return val;
+            return JSON.stringify(val);
+        };
+        await db_1.default.execute("INSERT INTO parks (id, nome, descricao, altitude, area, imagem, limite_capacidade_diaria, funcionamento, ingresso_base, video, principais_trilhas, cachoeiras, galeria_fotos, como_chegar) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [
             id,
             nome,
             descricao,
@@ -160,9 +204,14 @@ async function addPark(req, res) {
             imagem || null,
             limiteCapacidadeDiaria !== undefined ? limiteCapacidadeDiaria : 100,
             funcionamento || null,
-            ingressoBase !== undefined ? ingressoBase : 0.00
+            ingressoBase !== undefined ? ingressoBase : 0.00,
+            video || null,
+            serialize(principaisTrilhas),
+            serialize(cachoeiras),
+            serialize(galeriaFotos),
+            serialize(comoChegar)
         ]);
-        return res.status(201).json({ id, nome, descricao, altitude, area, imagem, limiteCapacidadeDiaria, funcionamento, ingressoBase });
+        return res.status(201).json({ id, nome, descricao, altitude, area, imagem, limiteCapacidadeDiaria, funcionamento, ingressoBase, video, principaisTrilhas, cachoeiras, galeriaFotos, comoChegar });
     }
     catch (error) {
         console.error(error);
@@ -172,8 +221,15 @@ async function addPark(req, res) {
 async function updatePark(req, res) {
     try {
         const { id } = req.params;
-        const { nome, descricao, altitude, area, imagem, limiteCapacidadeDiaria, funcionamento, ingressoBase } = req.body;
-        await db_1.default.execute("UPDATE parks SET nome = ?, descricao = ?, altitude = ?, area = ?, imagem = ?, limite_capacidade_diaria = ?, funcionamento = ?, ingresso_base = ? WHERE id = ?", [
+        const { nome, descricao, altitude, area, imagem, limiteCapacidadeDiaria, funcionamento, ingressoBase, video, principaisTrilhas, cachoeiras, galeriaFotos, comoChegar } = req.body;
+        const serialize = (val) => {
+            if (val === null || val === undefined)
+                return null;
+            if (typeof val === "string")
+                return val;
+            return JSON.stringify(val);
+        };
+        await db_1.default.execute("UPDATE parks SET nome = ?, descricao = ?, altitude = ?, area = ?, imagem = ?, limite_capacidade_diaria = ?, funcionamento = ?, ingresso_base = ?, video = ?, principais_trilhas = ?, cachoeiras = ?, galeria_fotos = ?, como_chegar = ? WHERE id = ?", [
             nome,
             descricao,
             altitude || null,
@@ -182,6 +238,11 @@ async function updatePark(req, res) {
             limiteCapacidadeDiaria !== undefined ? limiteCapacidadeDiaria : 100,
             funcionamento || null,
             ingressoBase !== undefined ? ingressoBase : 0.00,
+            video || null,
+            serialize(principaisTrilhas),
+            serialize(cachoeiras),
+            serialize(galeriaFotos),
+            serialize(comoChegar),
             id
         ]);
         return res.json({ message: "Parque atualizado com sucesso!" });
