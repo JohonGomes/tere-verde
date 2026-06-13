@@ -71,6 +71,17 @@ async function testDbConnection() {
         }
       }
 
+      // 1.2 Verificar e criar colunas adicionais na tabela comments se não existirem
+      const [commentColumns]: any = await connection.query(
+        "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'comments'",
+        [process.env.DB_NAME || "tere_verde"]
+      );
+      const commentColNames = commentColumns.map((c: any) => c.COLUMN_NAME.toLowerCase());
+      if (!commentColNames.includes("imagem")) {
+        await connection.query("ALTER TABLE comments ADD COLUMN imagem TEXT");
+        console.log("➕ Coluna 'imagem' adicionada à tabela comments");
+      }
+
       // Seed dos parques padrão se não existirem ou se precisarem de atualização dos novos campos
       const defaultParksData = [
         {

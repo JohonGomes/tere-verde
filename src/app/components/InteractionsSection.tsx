@@ -9,7 +9,7 @@ import { Input } from "./ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { toast } from "sonner";
-import { Heart, Send, MessageSquare, Image, ShieldAlert } from "lucide-react";
+import { Heart, Send, MessageSquare, Image, ShieldAlert, Camera, X, ZoomIn } from "lucide-react";
 
 interface InteractionsSectionProps {
   destinoNome: string;
@@ -29,6 +29,11 @@ export function InteractionsSection({ destinoNome, destinoTipo }: InteractionsSe
   const [commentText, setCommentText] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [expandedPhoto, setExpandedPhoto] = useState<{
+    url: string;
+    userName: string;
+    conteudo: string;
+  } | null>(null);
 
   const loadData = async () => {
     setLoading(true);
@@ -117,6 +122,8 @@ export function InteractionsSection({ destinoNome, destinoTipo }: InteractionsSe
     }
   };
 
+  const commentsWithImages = comments.filter(c => c.imagem && c.imagem.trim() !== "");
+
   return (
     <div className="space-y-6 pt-4 border-t border-border/80">
       {/* Curtidas & Likes Section */}
@@ -134,6 +141,68 @@ export function InteractionsSection({ destinoNome, destinoTipo }: InteractionsSe
           {isLiked ? "Curtido" : "Curtir Atração"}
         </Button>
       </div>
+
+      {/* Galeria do Usuário */}
+      {destinoTipo === "trail" && commentsWithImages.length > 0 && (
+        <div className="space-y-4 pb-6 border-b border-border/50">
+          <h4 className="text-lg font-bold flex items-center gap-2 text-foreground">
+            <Camera className="h-5 w-5 text-primary" />
+            Galeria do Usuário
+          </h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {commentsWithImages.map((c) => (
+              <div key={c.id} className="group relative rounded-lg overflow-hidden border border-border shadow-sm bg-muted/20 flex flex-col h-[320px]">
+                {/* Imagem com zoom no hover */}
+                <div 
+                  className="relative flex-1 overflow-hidden cursor-zoom-in group/img"
+                  onClick={() => setExpandedPhoto({ url: c.imagem!, userName: c.userName, conteudo: c.conteudo })}
+                >
+                  <img
+                    src={c.imagem}
+                    alt={`Foto de ${c.userName} em ${destinoNome}`}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  {/* Overlay no hover com ícone de zoom */}
+                  <div className="absolute inset-0 bg-black/30 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
+                    <div className="bg-black/50 p-2.5 rounded-full text-white backdrop-blur-sm scale-90 group-hover/img:scale-100 transition-all duration-300">
+                      <ZoomIn className="h-5 w-5" />
+                    </div>
+                  </div>
+                  {/* Badge da Trilha */}
+                  <div className="absolute top-2 left-2">
+                    <Badge className="bg-black/60 hover:bg-black/80 backdrop-blur-sm border-none text-white text-[10px]">
+                      {destinoNome}
+                    </Badge>
+                  </div>
+                </div>
+
+                {/* Legenda com as informações solicitadas */}
+                <div className="p-4 bg-background flex flex-col justify-between shrink-0 h-[120px]">
+                  <p className="text-xs text-muted-foreground italic line-clamp-3 leading-relaxed">
+                    "{c.conteudo}"
+                  </p>
+                  <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border/50">
+                    {c.userPic ? (
+                      <img
+                        src={c.userPic}
+                        alt={c.userName}
+                        className="h-6 w-6 rounded-full object-cover border border-border"
+                      />
+                    ) : (
+                      <div className="h-6 w-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-bold">
+                        {c.userName ? c.userName.charAt(0).toUpperCase() : "U"}
+                      </div>
+                    )}
+                    <span className="text-[11px] font-semibold text-foreground truncate">
+                      {c.userName}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Grid de Feed & Formulário */}
       <div className="grid md:grid-cols-5 gap-6 items-start">
@@ -158,7 +227,12 @@ export function InteractionsSection({ destinoNome, destinoTipo }: InteractionsSe
                   </div>
                   <p className="text-muted-foreground italic leading-relaxed">"{comment.conteudo}"</p>
                   {comment.imagem && (
-                    <img src={comment.imagem} alt="Envio do visitante" className="w-20 h-20 object-cover rounded border mt-1" />
+                    <img 
+                      src={comment.imagem} 
+                      alt="Envio do visitante" 
+                      className="w-20 h-20 object-cover rounded border mt-1 cursor-zoom-in hover:brightness-90 transition-all" 
+                      onClick={() => setExpandedPhoto({ url: comment.imagem!, userName: comment.userName, conteudo: comment.conteudo })}
+                    />
                   )}
                 </div>
               ))}
@@ -220,6 +294,63 @@ export function InteractionsSection({ destinoNome, destinoTipo }: InteractionsSe
           </CardContent>
         </Card>
       </div>
+
+      {/* Lightbox Modal para Ampliar a Foto */}
+      {expandedPhoto && (
+        <div 
+          className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex flex-col items-center justify-center p-4 md:p-6 transition-all duration-300 animate-in fade-in"
+          onClick={() => setExpandedPhoto(null)}
+        >
+          {/* Botão Fechar */}
+          <button 
+            className="absolute top-4 right-4 text-white/70 hover:text-white bg-white/10 hover:bg-white/20 p-2.5 rounded-full transition-all backdrop-blur-sm z-[110]"
+            onClick={() => setExpandedPhoto(null)}
+          >
+            <X className="h-6 w-6" />
+          </button>
+
+          {/* Container Principal */}
+          <div 
+            className="w-full max-w-4xl bg-zinc-950 border border-zinc-800 rounded-xl overflow-hidden shadow-2xl flex flex-col md:flex-row max-h-[90vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Área da Imagem */}
+            <div className="flex-1 bg-black flex items-center justify-center min-h-[300px] max-h-[50vh] md:max-h-[75vh]">
+              <img 
+                src={expandedPhoto.url} 
+                alt="Foto Ampliada" 
+                className="max-w-full max-h-full object-contain"
+              />
+            </div>
+
+            {/* Detalhes / Legenda (Barra Lateral) */}
+            <div className="w-full md:w-[320px] p-6 flex flex-col justify-between border-t md:border-t-0 md:border-l border-zinc-800 bg-zinc-900 shrink-0 text-white">
+              <div className="space-y-4">
+                <div>
+                  <Badge className="bg-primary/20 text-primary border-primary/30 text-xs mb-2 hover:bg-primary/20">
+                    {destinoNome}
+                  </Badge>
+                  <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Depoimento do Visitante</h4>
+                </div>
+                
+                <p className="text-zinc-300 italic text-sm leading-relaxed border-l-2 border-primary/50 pl-3 py-1 bg-primary/5 rounded-r">
+                  "{expandedPhoto.conteudo}"
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3 mt-6 pt-4 border-t border-zinc-800">
+                <div className="h-10 w-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold border border-zinc-700">
+                  {(expandedPhoto.userName || "U").charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <div className="font-semibold text-sm text-zinc-100">{expandedPhoto.userName}</div>
+                  <div className="text-[11px] text-zinc-400">Aventureiro Terê Verde</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

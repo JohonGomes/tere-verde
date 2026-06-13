@@ -178,6 +178,7 @@ export const ApiService = {
       tipoDestino: c.targetType,
       destinoId: destinoId, // Manter o ID do roteador local
       conteudo: c.content,
+      imagem: c.imagem,
       status: c.status,
       createdAt: c.createdAt
     }));
@@ -203,6 +204,7 @@ export const ApiService = {
         tipoDestino: c.targetType,
         destinoId: c.targetName === "Pedra do Sino" ? "trilha-pedra-do-sino" : c.targetName,
         conteudo: c.content,
+        imagem: c.imagem,
         status: c.status,
         createdAt: c.createdAt
       }));
@@ -231,7 +233,8 @@ export const ApiService = {
       body: JSON.stringify({
         targetName,
         targetType: payload.tipoDestino,
-        content: payload.conteudo
+        content: payload.conteudo,
+        imagem: payload.imagem
       })
     });
     if (!res.ok) {

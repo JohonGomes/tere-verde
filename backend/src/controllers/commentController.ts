@@ -32,7 +32,7 @@ export async function getComments(req: AuthenticatedRequest, res: Response) {
     let query = `
       SELECT id, user_id as userId, user_name as userName, user_pic as userPic, 
              target_name as targetName, target_type as targetType, content, status, 
-             created_at as createdAt 
+             imagem, created_at as createdAt 
       FROM comments
     `;
     let params: any[] = [];
@@ -65,7 +65,7 @@ export async function getComments(req: AuthenticatedRequest, res: Response) {
 // 2. Adicionar Comentário (Fica pendente de moderação - RN01)
 export async function addComment(req: AuthenticatedRequest, res: Response) {
   try {
-    const { targetName, targetType, content } = req.body;
+    const { targetName, targetType, content, imagem } = req.body;
     const userId = req.user?.id;
 
     if (!userId) {
@@ -82,13 +82,13 @@ export async function addComment(req: AuthenticatedRequest, res: Response) {
     const status = "Pendente"; // Moderação ativa
 
     await pool.execute(
-      "INSERT INTO comments (id, user_id, user_name, user_pic, target_name, target_type, content, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-      [id, userId, userName, userPic, targetName, targetType, content, status]
+      "INSERT INTO comments (id, user_id, user_name, user_pic, target_name, target_type, content, status, imagem) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      [id, userId, userName, userPic, targetName, targetType, content, status, imagem || null]
     );
 
     return res.status(201).json({
       message: "Seu comentário foi enviado para moderação e ficará visível em breve!",
-      comment: { id, userId, userName, userPic, targetName, targetType, content, status }
+      comment: { id, userId, userName, userPic, targetName, targetType, content, status, imagem }
     });
   } catch (error) {
     console.error(error);

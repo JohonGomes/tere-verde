@@ -89,6 +89,7 @@ async function run() {
         target_type ENUM('park', 'trail', 'event') NOT NULL,
         content TEXT NOT NULL,
         status ENUM('Pendente', 'Aprovado', 'Reprovado') DEFAULT 'Pendente',
+        imagem TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
       );

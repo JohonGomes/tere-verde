@@ -37,7 +37,7 @@ async function getComments(req, res) {
         let query = `
       SELECT id, user_id as userId, user_name as userName, user_pic as userPic, 
              target_name as targetName, target_type as targetType, content, status, 
-             created_at as createdAt 
+             imagem, created_at as createdAt 
       FROM comments
     `;
         let params = [];
@@ -68,7 +68,7 @@ async function getComments(req, res) {
 // 2. Adicionar Comentário (Fica pendente de moderação - RN01)
 async function addComment(req, res) {
     try {
-        const { targetName, targetType, content } = req.body;
+        const { targetName, targetType, content, imagem } = req.body;
         const userId = req.user?.id;
         if (!userId) {
             return res.status(401).json({ message: "Usuário não autenticado." });
@@ -80,10 +80,10 @@ async function addComment(req, res) {
         const userName = req.user.name;
         const userPic = req.user.profilePic || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100";
         const status = "Pendente"; // Moderação ativa
-        await db_1.default.execute("INSERT INTO comments (id, user_id, user_name, user_pic, target_name, target_type, content, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", [id, userId, userName, userPic, targetName, targetType, content, status]);
+        await db_1.default.execute("INSERT INTO comments (id, user_id, user_name, user_pic, target_name, target_type, content, status, imagem) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", [id, userId, userName, userPic, targetName, targetType, content, status, imagem || null]);
         return res.status(201).json({
             message: "Seu comentário foi enviado para moderação e ficará visível em breve!",
-            comment: { id, userId, userName, userPic, targetName, targetType, content, status }
+            comment: { id, userId, userName, userPic, targetName, targetType, content, status, imagem }
         });
     }
     catch (error) {
