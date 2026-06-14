@@ -82,6 +82,77 @@ async function testDbConnection() {
         console.log("➕ Coluna 'imagem' adicionada à tabela comments");
       }
 
+      // 1.3 Verificar e criar a tabela settings se não existir
+      await connection.query(`
+        CREATE TABLE IF NOT EXISTS settings (
+          key_name VARCHAR(50) PRIMARY KEY,
+          value_text TEXT
+        )
+      `);
+      console.log("✅ Tabela 'settings' verificada/criada!");
+
+      // Seed dos valores padrão para a história da cidade
+      const [historyTitleRows]: any = await connection.query("SELECT key_name FROM settings WHERE key_name = 'city_history_title'");
+      if (historyTitleRows.length === 0) {
+        await connection.query("INSERT INTO settings (key_name, value_text) VALUES (?, ?)", [
+          "city_history_title",
+          "Breve História de Teresópolis"
+        ]);
+      }
+
+      const [historyParagraphsRows]: any = await connection.query("SELECT key_name FROM settings WHERE key_name = 'city_history_paragraphs'");
+      if (historyParagraphsRows.length === 0) {
+        const defaultParagraphs = [
+          "Fundada formalmente em 1891, a cidade deve seu nome a uma homenagem direta à imperatriz Dona Teresa Cristina, esposa de Dom Pedro II. A Família Imperial brasileira costumava subir a serra para desfrutar do clima agradável e das paisagens espetaculares durante os quentes verões fluminenses.",
+          "Com o passar das décadas, Teresópolis tornou-se mundialmente famosa como o berço do montanhismo nacional, impulsionada pelo icônico pico Dedo de Deus, conquistado pela primeira vez em 1912. Desde então, montanhistas e escaladores de todos os continentes visitam a região serrana para testar seus limites em paredões rochosos históricos e trilhas exuberantes.",
+          "Hoje, além das exuberantes florestas e reservas da biosfera, a cidade se destaca pela alta gastronomia serrana, produção de cervejas artesanais premiadas, agricultura familiar orgânica de ponta e infraestrutura aconchegante para receber casais, famílias e aventureiros de fim de semana."
+        ];
+        await connection.query("INSERT INTO settings (key_name, value_text) VALUES (?, ?)", [
+          "city_history_paragraphs",
+          JSON.stringify(defaultParagraphs)
+        ]);
+        console.log("🌱 Configurações padrão de história da cidade semeadas!");
+      }
+
+      const [servicesRows]: any = await connection.query("SELECT key_name FROM settings WHERE key_name = 'city_services'");
+      if (servicesRows.length === 0) {
+        const defaultServices = [
+          {
+            categoria: "Saúde & Hospitais",
+            nome: "Hospital das Clínicas de Teresópolis (HCTCO)",
+            endereco: "Av. Delfim Moreira, 2011 - Vale do Paraíso",
+            telefone: "(21) 2741-5000",
+            emergencia: "192 (SAMU)"
+          },
+          {
+            categoria: "Segurança & Emergência",
+            nome: "30º Batalhão da Polícia Militar",
+            endereco: "Rua Tenente Luiz Meirelles, s/n - Bom Retiro",
+            telefone: "(21) 2742-7000",
+            emergencia: "190 (Polícia Militar) / 193 (Bombeiros)"
+          },
+          {
+            categoria: "Bancos & Câmbio",
+            nome: "Agências do Centro (Banco do Brasil, Itaú, Bradesco)",
+            endereco: "Av. Feliciano Sodré - Várzea",
+            telefone: "Atendimento comercial local",
+            emergencia: "Disponível caixas 24 horas no Centro"
+          },
+          {
+            categoria: "Turismo & Informações",
+            nome: "Centro de Atendimento ao Turista (CAT Soberbo)",
+            endereco: "Av. Rotariana, s/n (Mirante do Soberbo)",
+            telefone: "(21) 2742-3352 - Ramal 204",
+            emergencia: "Atendimento Diário: 09h às 17h"
+          }
+        ];
+        await connection.query("INSERT INTO settings (key_name, value_text) VALUES (?, ?)", [
+          "city_services",
+          JSON.stringify(defaultServices)
+        ]);
+        console.log("🌱 Guia de utilidade pública semeado com sucesso!");
+      }
+
       // Seed dos parques padrão se não existirem ou se precisarem de atualização dos novos campos
       const defaultParksData = [
         {

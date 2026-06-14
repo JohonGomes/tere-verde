@@ -2,7 +2,8 @@ import { Router } from "express";
 import { 
   getEvents, addEvent, updateEvent, deleteEvent,
   getRestaurants, addRestaurant, updateRestaurant, deleteRestaurant,
-  getLodgings, addLodging, updateLodging, deleteLodging 
+  getLodgings, addLodging, updateLodging, deleteLodging,
+  getSettings, updateSetting
 } from "../controllers/miscController";
 import { protect, restrictTo } from "../middlewares/auth";
 
@@ -31,5 +32,11 @@ router.get("/lodgings", getLodgings);
 router.post("/lodgings", protect, restrictTo("admin"), addLodging);
 router.put("/lodgings/:id", protect, restrictTo("admin"), updateLodging);
 router.delete("/lodgings/:id", protect, restrictTo("admin"), deleteLodging);
+
+// ==========================================
+// ⚙️ Configurações / Settings
+// ==========================================
+router.get("/settings/:key", getSettings);
+router.put("/settings/:key", protect, restrictTo("admin"), updateSetting);
 
 export default router;

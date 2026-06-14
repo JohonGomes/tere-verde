@@ -292,7 +292,7 @@ export const ApiService = {
     }));
   },
 
-  addReview: async (userId: string, userName: string, userPic: string | undefined, tipoDestino: "restaurant" | "lodging", destinoId: string, nota: number, comentario: string): Promise<Review> => {
+  addReview: async (tipoDestino: "restaurant" | "lodging", destinoId: string, nota: number, comentario: string): Promise<Review> => {
     const mappedType = tipoDestino === "restaurant" ? "Restaurante" : "Hospedagem";
     const res = await fetch(`${BASE_URL}/reviews`, {
       method: "POST",
@@ -322,6 +322,25 @@ export const ApiService = {
       comentario: r.comment,
       createdAt: r.createdAt
     };
+  },
+
+  getSetting: async (key: string): Promise<string> => {
+    const res = await fetch(`${BASE_URL}/settings/${key}`);
+    if (!res.ok) throw new Error("Erro ao buscar configuração.");
+    const data = await res.json();
+    return data.value;
+  },
+
+  updateSetting: async (key: string, value: string): Promise<void> => {
+    const res = await fetch(`${BASE_URL}/settings/${key}`, {
+      method: "PUT",
+      headers: getHeaders(),
+      body: JSON.stringify({ value })
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || "Erro ao salvar configuração.");
+    }
   },
 
   // ==========================================

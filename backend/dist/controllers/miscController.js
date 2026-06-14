@@ -15,6 +15,8 @@ exports.getLodgings = getLodgings;
 exports.addLodging = addLodging;
 exports.updateLodging = updateLodging;
 exports.deleteLodging = deleteLodging;
+exports.getSettings = getSettings;
+exports.updateSetting = updateSetting;
 const db_1 = __importDefault(require("../config/db"));
 const crypto_1 = __importDefault(require("crypto"));
 // ==========================================
@@ -177,5 +179,35 @@ async function deleteLodging(req, res) {
     catch (error) {
         console.error(error);
         return res.status(500).json({ message: "Erro ao excluir hospedagem." });
+    }
+}
+// ==========================================
+// ⚙️ SETTINGS / CONFIGURAÇÕES
+// ==========================================
+async function getSettings(req, res) {
+    try {
+        const { key } = req.params;
+        const [rows] = await db_1.default.execute("SELECT value_text as valueText FROM settings WHERE key_name = ?", [key]);
+        if (rows.length === 0) {
+            return res.status(404).json({ message: "Configuração não encontrada." });
+        }
+        return res.json({ key, value: rows[0].valueText });
+    }
+    catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Erro ao buscar configuração." });
+    }
+}
+async function updateSetting(req, res) {
+    try {
+        const { key } = req.params;
+        const { value } = req.body;
+        // Upsert em settings
+        await db_1.default.execute("INSERT INTO settings (key_name, value_text) VALUES (?, ?) ON DUPLICATE KEY UPDATE value_text = ?", [key, value, value]);
+        return res.json({ message: "Configuração atualizada com sucesso!", key, value });
+    }
+    catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Erro ao atualizar configuração." });
     }
 }

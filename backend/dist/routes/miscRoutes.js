@@ -25,4 +25,9 @@ router.get("/lodgings", miscController_1.getLodgings);
 router.post("/lodgings", auth_1.protect, (0, auth_1.restrictTo)("admin"), miscController_1.addLodging);
 router.put("/lodgings/:id", auth_1.protect, (0, auth_1.restrictTo)("admin"), miscController_1.updateLodging);
 router.delete("/lodgings/:id", auth_1.protect, (0, auth_1.restrictTo)("admin"), miscController_1.deleteLodging);
+// ==========================================
+// ⚙️ Configurações / Settings
+// ==========================================
+router.get("/settings/:key", miscController_1.getSettings);
+router.put("/settings/:key", auth_1.protect, (0, auth_1.restrictTo)("admin"), miscController_1.updateSetting);
 exports.default = router;

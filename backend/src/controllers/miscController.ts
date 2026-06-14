@@ -194,3 +194,38 @@ export async function deleteLodging(req: AuthenticatedRequest, res: Response) {
     return res.status(500).json({ message: "Erro ao excluir hospedagem." });
   }
 }
+
+// ==========================================
+// ⚙️ SETTINGS / CONFIGURAÇÕES
+// ==========================================
+export async function getSettings(req: AuthenticatedRequest, res: Response) {
+  try {
+    const { key } = req.params;
+    const [rows]: any = await pool.execute("SELECT value_text as valueText FROM settings WHERE key_name = ?", [key]);
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "Configuração não encontrada." });
+    }
+    return res.json({ key, value: rows[0].valueText });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Erro ao buscar configuração." });
+  }
+}
+
+export async function updateSetting(req: AuthenticatedRequest, res: Response) {
+  try {
+    const { key } = req.params;
+    const { value } = req.body;
+
+    // Upsert em settings
+    await pool.execute(
+      "INSERT INTO settings (key_name, value_text) VALUES (?, ?) ON DUPLICATE KEY UPDATE value_text = ?",
+      [key, value, value]
+    );
+
+    return res.json({ message: "Configuração atualizada com sucesso!", key, value });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Erro ao atualizar configuração." });
+  }
+}
