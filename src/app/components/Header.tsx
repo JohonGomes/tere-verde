@@ -1,4 +1,4 @@
-import { Mountain, LogIn, User, Trees } from "lucide-react";
+import { Mountain, LogIn, User, Trees, LogOut } from "lucide-react";
 import { useState, useEffect } from "react";
 import { ThemeToggle } from "./ThemeToggle";
 import { MobileMenu } from "./MobileMenu";
@@ -18,7 +18,7 @@ interface HeaderProps {
 }
 
 export function Header({ onNavigate }: HeaderProps) {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [authOpen, setAuthOpen] = useState(false);
   const [authTab, setAuthTab] = useState<"login" | "register">("login");
   const [parks, setParks] = useState<any[]>([]);
@@ -78,13 +78,22 @@ export function Header({ onNavigate }: HeaderProps) {
               <span className="hidden sm:inline">Entrar</span>
             </button>
           ) : (
-            <button
-              onClick={() => onNavigate(user.role === "admin" ? "admin-dashboard" : "user-profile")}
-              className="flex items-center gap-1.5 text-sm font-semibold border px-3 py-1.5 rounded-lg hover:bg-accent transition-colors bg-primary/5 border-primary/20 text-primary"
-            >
-              <User className="h-4 w-4" />
-              <span className="hidden sm:inline truncate max-w-[80px]">{user.name.split(" ")[0]}</span>
-            </button>
+            <div className="flex items-center">
+              <button
+                onClick={() => onNavigate(user.role === "admin" ? "admin-dashboard" : "user-profile")}
+                className="flex items-center gap-1.5 text-sm font-semibold border px-3 py-1.5 rounded-l-lg hover:bg-accent transition-colors bg-primary/5 border-primary/20 text-primary border-r-0 h-9 cursor-pointer"
+              >
+                <User className="h-4 w-4" />
+                <span className="hidden sm:inline truncate max-w-[80px]">{user.name.split(" ")[0]}</span>
+              </button>
+              <button
+                onClick={() => logout()}
+                className="flex items-center justify-center border p-2 rounded-r-lg hover:bg-red-500/10 hover:text-red-500 transition-colors border-primary/20 hover:border-red-500/30 text-muted-foreground h-9 cursor-pointer"
+                title="Sair da Conta"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            </div>
           )}
 
           <ThemeToggle />
