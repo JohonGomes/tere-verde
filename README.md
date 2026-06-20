@@ -3,6 +3,7 @@
 O **Terê Verde** é um portal completo de turismo ecológico para a cidade de Teresópolis, RJ. A plataforma foi desenvolvida para ajudar visitantes a explorar as riquezas naturais da região serrana, com informações detalhadas sobre parques ecológicos, trilhas, calendário de eventos, previsão do tempo, além de um sistema integrado de simulação para reserva e compra de ingressos.
 
 ##Documentação completa
+
 Link : https://docs.google.com/document/d/12arS2K1YCh_qPvGpCbOPQdpnVtJCjc_EAFd5AnCy3CM/edit?usp=sharing
 
 ---
