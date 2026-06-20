@@ -215,7 +215,7 @@ function IngressosSection({ onBuy }: { onBuy: (type: "park" | "event", id?: stri
                 <p className="text-sm opacity-80">Inclui guia e equipamentos</p>
               </CardContent>
               <CardFooter>
-                <Button variant="secondary" className="w-full cursor-pointer" onClick={() => onBuy("event", "e-observacao")}>Reservar</Button>
+                <Button variant="secondary" className="w-full cursor-pointer" onClick={() => onBuy("event", "event-desafio-montanhismo")}>Reservar</Button>
               </CardFooter>
             </Card>
           </ScaleIn>
@@ -247,7 +247,7 @@ function IngressosSection({ onBuy }: { onBuy: (type: "park" | "event", id?: stri
                 <p className="text-sm opacity-80">3 dias de programação</p>
               </CardContent>
               <CardFooter>
-                <Button variant="secondary" className="w-full cursor-pointer" onClick={() => onBuy("event", "e-inverno")}>Garantir</Button>
+                <Button variant="secondary" className="w-full cursor-pointer" onClick={() => onBuy("event", "event-festival-inverno")}>Garantir</Button>
               </CardFooter>
             </Card>
           </ScaleIn>
@@ -263,7 +263,7 @@ function IngressosSection({ onBuy }: { onBuy: (type: "park" | "event", id?: stri
                 <p className="text-sm opacity-80">Todos os parques</p>
               </CardContent>
               <CardFooter>
-                <Button variant="secondary" className="w-full cursor-pointer" onClick={() => onBuy("park", "tres-picos")}>Assinar</Button>
+                <Button variant="secondary" className="w-full cursor-pointer" onClick={() => onBuy("park", "parque-tres-picos")}>Assinar</Button>
               </CardFooter>
             </Card>
           </ScaleIn>

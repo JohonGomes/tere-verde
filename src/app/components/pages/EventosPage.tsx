@@ -160,13 +160,8 @@ export function EventosPage({ onNavigate }: EventosPageProps) {
         <TicketPurchaseModal
           open={purchaseOpen}
           onOpenChange={setPurchaseOpen}
-          target={{
-            id: selectedEvent.id,
-            name: selectedEvent.nome,
-            type: "event",
-            price: selectedEvent.preco,
-            parkId: selectedEvent.parkId,
-          }}
+          defaultItemType="event"
+          defaultItemId={selectedEvent.id}
         />
       )}
 

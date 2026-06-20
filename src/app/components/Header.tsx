@@ -168,10 +168,8 @@ export function Header({ onNavigate }: HeaderProps) {
         <TicketPurchaseModal
           open={buyModalOpen}
           onOpenChange={setBuyModalOpen}
-          preselectedType="park"
-          preselectedId={selectedCustomPark.id}
-          preselectedName={selectedCustomPark.nome}
-          preselectedPrice={Number(selectedCustomPark.ingressoBase || 0)}
+          defaultItemType="park"
+          defaultItemId={selectedCustomPark.id}
         />
       )}
     </header>
